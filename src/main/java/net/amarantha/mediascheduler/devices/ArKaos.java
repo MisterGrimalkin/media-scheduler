@@ -12,11 +12,11 @@ public class ArKaos {
 
     public ArKaos() {}
 
-    public void start() {
+    public void open() {
         midi.openDevice();
     }
 
-    public void stop() {
+    public void close() {
         midi.closeDevice();
     }
 

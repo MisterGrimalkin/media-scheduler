@@ -16,13 +16,12 @@ public class Midi {
     }
 
     public void openDevice(String name) {
-        midiDevice = getMidiDevice(name);
-        if ( midiDevice!=null ) {
-            try {
-                midiDevice.open();
-            } catch (MidiUnavailableException e) {
-                System.err.println("Could not open MIDI device '" + name + "'\n" + e.getMessage());
-            }
+        try {
+            midiDevice = getMidiDevice(name);
+            midiDevice.open();
+        } catch (MidiUnavailableException e) {
+            System.err.println("Could not open MIDI device '" + name + "'\n\t" + e.getMessage());
+            e.printStackTrace();
         }
     }
 
@@ -33,30 +32,31 @@ public class Midi {
     }
 
     public void send(int command, int channel, int data1, int data2) {
-        try {
-            Receiver receiver = midiDevice.getReceiver();
-            ShortMessage message = new ShortMessage();
-            message.setMessage(command, channel, data1, data2);
-            receiver.send(message, -1);
-        } catch (InvalidMidiDataException | MidiUnavailableException e) {
-            System.err.println("Invalid MIDI Data!");
+        if ( midiDevice!=null ) {
+            try {
+                Receiver receiver = midiDevice.getReceiver();
+                ShortMessage message = new ShortMessage();
+                message.setMessage(command, channel, data1, data2);
+                receiver.send(message, -1);
+            } catch (InvalidMidiDataException e) {
+                System.err.println("Invalid MIDI Data:\n" + e.getMessage());
+            } catch (MidiUnavailableException e) {
+                System.err.println("MIDI Device Unavailable:\n" + e.getMessage());
+            }
         }
     }
 
-    private MidiDevice getMidiDevice(String name) {
+    private MidiDevice getMidiDevice(String name) throws MidiUnavailableException {
         MidiDevice.Info[] infos = MidiSystem.getMidiDeviceInfo();
         for (MidiDevice.Info info : infos) {
-            try {
                 MidiDevice device = MidiSystem.getMidiDevice(info);
-                if ( device.getReceiver()!=null && info.getDescription().contains(name)) {
-                    return device;
-                }
-            } catch (MidiUnavailableException e) {
-                System.err.println(e.getMessage());
-            }
+                try {
+                    if (device.getReceiver() != null && info.getDescription().contains(name)) {
+                        return device;
+                    }
+                } catch ( MidiUnavailableException ignored ) {}
         }
-        System.err.println("MIDI Device '" + name + "' not found");
-        return null;
+        throw new MidiUnavailableException("MIDI Device '" + name + "' not found");
     }
 
 }

@@ -8,9 +8,9 @@ public class Application {
     @Inject private ArKaos mediaServer;
 
     public void startApplication() {
-        mediaServer.start();
+        mediaServer.open();
         mediaServer.testMidi();
-        mediaServer.stop();
+        mediaServer.close();
     }
 
 }
