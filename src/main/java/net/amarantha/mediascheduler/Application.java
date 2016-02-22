@@ -1,7 +1,7 @@
 package net.amarantha.mediascheduler;
 
 import com.google.inject.Inject;
-import net.amarantha.mediascheduler.devices.ArKaos;
+import net.amarantha.mediascheduler.device.ArKaos;
 
 public class Application {
 

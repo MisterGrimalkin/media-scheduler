@@ -1,36 +1,37 @@
-package net.amarantha.mediascheduler.devices;
+package net.amarantha.mediascheduler.midi;
 
 import com.google.inject.Singleton;
 
 import javax.sound.midi.*;
 
 @Singleton
-public class Midi {
+public class MidiImpl implements Midi {
 
     private MidiDevice midiDevice;
 
-    public Midi() {}
-
+    @Override
     public void openDevice() {
         openDevice(System.getenv("MIDIDEVICE"));
     }
 
+    @Override
     public void openDevice(String name) {
         try {
             midiDevice = getMidiDevice(name);
             midiDevice.open();
         } catch (MidiUnavailableException e) {
-            System.err.println("Could not open MIDI device '" + name + "'\n\t" + e.getMessage());
-            e.printStackTrace();
+            System.err.println("Could not open MIDI device '" + name + "': " + e.getMessage());
         }
     }
 
+    @Override
     public void closeDevice() {
         if ( midiDevice!=null ) {
             midiDevice.close();
         }
     }
 
+    @Override
     public void send(int command, int channel, int data1, int data2) {
         if ( midiDevice!=null ) {
             try {
@@ -39,9 +40,9 @@ public class Midi {
                 message.setMessage(command, channel, data1, data2);
                 receiver.send(message, -1);
             } catch (InvalidMidiDataException e) {
-                System.err.println("Invalid MIDI Data:\n" + e.getMessage());
+                System.err.println("Invalid MIDI Data: " + e.getMessage());
             } catch (MidiUnavailableException e) {
-                System.err.println("MIDI Device Unavailable:\n" + e.getMessage());
+                System.err.println("MIDI Device Unavailable: " + e.getMessage());
             }
         }
     }
