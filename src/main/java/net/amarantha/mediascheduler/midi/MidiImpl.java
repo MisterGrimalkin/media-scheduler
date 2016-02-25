@@ -47,6 +47,11 @@ public class MidiImpl implements Midi {
         }
     }
 
+    @Override
+    public void send(MidiCommand command, int data2) {
+        send(command.command, command.channel, command.data1, data2);
+    }
+
     private MidiDevice getMidiDevice(String name) throws MidiUnavailableException {
         MidiDevice.Info[] infos = MidiSystem.getMidiDeviceInfo();
         for (MidiDevice.Info info : infos) {
