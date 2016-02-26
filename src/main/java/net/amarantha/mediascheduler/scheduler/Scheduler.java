@@ -12,6 +12,7 @@ import net.amarantha.mediascheduler.exception.SchedulerException;
 import net.amarantha.mediascheduler.utility.Now;
 
 import java.util.*;
+import java.util.Map.Entry;
 
 @Singleton
 public class Scheduler {
@@ -46,6 +47,10 @@ public class Scheduler {
 
     public static final int MAX_PRIORITY = 10;
 
+    public void clearSchedules() {
+        schedules.clear();
+    }
+
     public Schedule createSchedule(int priority) throws PriorityOutOfBoundsException {
         if ( priority < 1 || priority > MAX_PRIORITY ) {
             throw new PriorityOutOfBoundsException("Priority must be between 1 (lowest) and " + MAX_PRIORITY + " (highest)");
@@ -55,12 +60,16 @@ public class Scheduler {
         return schedule;
     }
 
+    public Map<Integer, Schedule> getSchedules() {
+        return schedules;
+    }
+
     public Schedule getSchedule(int priority) {
         return schedules.get(priority);
     }
 
     public MediaEvent getCurrentEvent() {
-        for ( int priority = 1; priority<=MAX_PRIORITY; priority++ ) {
+        for ( int priority = MAX_PRIORITY; priority>0; priority-- ) {
             Schedule schedule = schedules.get(priority);
             if ( schedule!=null ) {
                 MediaEvent event = schedule.getEvent(now.now());
@@ -86,7 +95,27 @@ public class Scheduler {
             schedule = createSchedule(priority);
         }
         schedule.addEvent(event);
+        checkSchedule();
         return event;
+    }
+
+    public boolean removeEvent(long eventId) {
+        boolean removed = false;
+        for ( Entry<Integer, Schedule> entry : schedules.entrySet() ) {
+            removed |= entry.getValue().removeEvent(eventId);
+        }
+        checkSchedule();
+        return removed;
+    }
+
+    public MediaEvent getEventById(long eventId) {
+        for ( Entry<Integer, Schedule> entry : schedules.entrySet() ) {
+            MediaEvent event = entry.getValue().getEventById(eventId);
+            if ( event!=null ) {
+                return event;
+            }
+        }
+        return null;
     }
 
 
@@ -95,6 +124,7 @@ public class Scheduler {
     ////////////////////////
 
     private Timer timer;
+    private boolean paused = false;
 
     public void startup() {
         mediaServer.startup();
@@ -107,8 +137,34 @@ public class Scheduler {
         timer.schedule(new TimerTask() {
             @Override
             public void run() {
+                if ( !paused ) {
+                    checkSchedule();
+                }
             }
         }, 0, 1000);
+    }
+
+    public void pause() {
+        paused = true;
+    }
+
+    public void resume() {
+        paused = false;
+    }
+
+    void checkSchedule() {
+        MediaEvent currentEvent = getCurrentEvent();
+        CueList nextCueList = ( currentEvent==null ? null : currentEvent.getCueList() );
+        CueList currentCueList = mediaServer.getCurrentCueList();
+        if ( nextCueList==null ) {
+            if ( currentCueList!=null ) {
+                mediaServer.stopCueList();
+            }
+        } else {
+            if ( !nextCueList.equals(currentCueList) ) {
+                mediaServer.startCueList(currentEvent.getCueList());
+            }
+        }
     }
 
     public void shutdown() {

@@ -13,17 +13,16 @@ public class Application {
     public void startApplication() {
 
         System.out.println("Starting Up");
-
         scheduler.startup();
+
+        scheduler.testMidi();
 
         System.out.println("Press ENTER to quit...");
         Scanner sc = new Scanner(System.in);
         while( !sc.hasNextLine() ) {}
 
-
         System.out.println("Shutting Down");
         scheduler.shutdown();
-
 
     }
 

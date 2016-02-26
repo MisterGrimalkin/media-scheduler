@@ -85,6 +85,38 @@ public class Schedule {
     }
 
     private void checkConflicts(MediaEvent event) throws ScheduleConflictException {
+        if ( event.getRepeatOn().isEmpty() ) {
+            for ( Entry<DayOfWeek, Map<LocalDate, List<MediaEvent>>> dowEntry : allEvents.entrySet() ) {
+                for ( Entry<LocalDate, List<MediaEvent>> dateEntry : dowEntry.getValue().entrySet() ) {
+                    List<MediaEvent> eventList = dateEntry.getValue();
+                    for ( MediaEvent otherEvent : eventList ) {
+                        if ( isConflict(event, otherEvent) ) {
+                            throw new ScheduleConflictException(otherEvent);
+                        }
+                    }
+                }
+            }
+        } else {
+            // need to figure out how to handle repeats
+        }
+    }
+
+    private boolean isConflict(MediaEvent thisEvent, MediaEvent otherEvent) {
+        if ( thisEvent.getStartDate().equals(otherEvent.getStartDate()) ) {
+            LocalTime thisStart = thisEvent.getStartTime();
+            LocalTime thisEnd = thisEvent.getEndTime();
+            LocalTime otherStart = otherEvent.getStartTime();
+            LocalTime otherEnd = otherEvent.getEndTime();
+            if (
+                       (thisStart.compareTo(otherStart) <= 0 && thisEnd.compareTo(otherStart) > 0)
+                    || (thisStart.compareTo(otherStart) > 0 && thisEnd.compareTo(otherEnd) < 0)
+                    || (thisStart.compareTo(otherEnd) < 0 && thisEnd.compareTo(otherEnd) >= 0 )
+            ) {
+                return true;
+            }
+
+        }
+        return false;
     }
 
     private void addEventToMap(MediaEvent event, DayOfWeek dow, LocalDate date) {
@@ -97,6 +129,40 @@ public class Schedule {
         events.add(event);
         Collections.sort(events);
     }
+
+
+    ///////////////////
+    // Remove Events //
+    ///////////////////
+
+    MediaEvent getEventById(long eventId) {
+        for ( Entry<DayOfWeek, Map<LocalDate, List<MediaEvent>>> dowEntry : allEvents.entrySet() ) {
+            for ( Entry<LocalDate, List<MediaEvent>> dateEntry : dowEntry.getValue().entrySet() ) {
+                List<MediaEvent> eventList = dateEntry.getValue();
+                for ( MediaEvent event : eventList ) {
+                    if ( event.getId()==eventId ) {
+                        return event;
+                    }
+                }
+            }
+        }
+        return null;
+    }
+
+    boolean removeEvent(long eventId) {
+        for ( Entry<DayOfWeek, Map<LocalDate, List<MediaEvent>>> dowEntry : allEvents.entrySet() ) {
+            for ( Entry<LocalDate, List<MediaEvent>> dateEntry : dowEntry.getValue().entrySet() ) {
+                List<MediaEvent> eventList = dateEntry.getValue();
+                for ( MediaEvent event : eventList ) {
+                    if ( event.getId()==eventId ) {
+                        return eventList.remove(event);
+                    }
+                }
+            }
+        }
+        return false;
+    }
+
 
 
     ///////////////

@@ -22,6 +22,7 @@ public class ArKaos {
 
     public void startup() {
         midi.openDevice();
+        stopCueList();
     }
 
     public void shutdown() {
@@ -52,6 +53,7 @@ public class ArKaos {
     }
 
     public void testMidi() {
+        System.out.println("Running MIDI Test....");
         try {
             for (int i = 30; i < 100; i++) {
                 midi.send(NOTE_ON, 1, i, 100);
@@ -63,6 +65,7 @@ public class ArKaos {
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
+        System.out.println("MIDI Test Complete");
     }
 
 }
