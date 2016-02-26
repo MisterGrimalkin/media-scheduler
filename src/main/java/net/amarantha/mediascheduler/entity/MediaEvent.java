@@ -1,6 +1,5 @@
 package net.amarantha.mediascheduler.entity;
 
-import java.security.InvalidParameterException;
 import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.LocalTime;
@@ -76,6 +75,10 @@ public class MediaEvent implements Comparable<MediaEvent> {
 
     public void setRepeatOn(Set<DayOfWeek> repeatOn) {
         this.repeatOn = repeatOn;
+    }
+
+    public boolean isRepeating() {
+        return !repeatOn.isEmpty();
     }
 
     @Override

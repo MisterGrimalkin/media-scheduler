@@ -66,6 +66,20 @@ public class Schedule {
         return result;
     }
 
+    MediaEvent getEventById(long eventId) {
+        for ( Entry<DayOfWeek, Map<LocalDate, List<MediaEvent>>> dowEntry : allEvents.entrySet() ) {
+            for ( Entry<LocalDate, List<MediaEvent>> dateEntry : dowEntry.getValue().entrySet() ) {
+                List<MediaEvent> eventList = dateEntry.getValue();
+                for ( MediaEvent event : eventList ) {
+                    if ( event.getId()==eventId ) {
+                        return event;
+                    }
+                }
+            }
+        }
+        return null;
+    }
+
 
     ////////////////
     // Add Events //
@@ -73,50 +87,70 @@ public class Schedule {
 
     void addEvent(MediaEvent event) throws ScheduleConflictException {
         checkConflicts(event);
-        if ( event.getRepeatOn().isEmpty() ) {
-            // One-off event
-            addEventToMap(event, event.getStartDate().getDayOfWeek(), event.getStartDate());
-        } else {
+        if ( event.isRepeating() ) {
             // Repeating event
             for ( DayOfWeek dow : event.getRepeatOn() ) {
                 addEventToMap(event, dow, null);
             }
+        } else {
+            // One-off event
+            addEventToMap(event, event.getStartDate().getDayOfWeek(), event.getStartDate());
         }
     }
 
     private void checkConflicts(MediaEvent event) throws ScheduleConflictException {
-        if ( event.getRepeatOn().isEmpty() ) {
-            for ( Entry<DayOfWeek, Map<LocalDate, List<MediaEvent>>> dowEntry : allEvents.entrySet() ) {
-                for ( Entry<LocalDate, List<MediaEvent>> dateEntry : dowEntry.getValue().entrySet() ) {
-                    List<MediaEvent> eventList = dateEntry.getValue();
-                    for ( MediaEvent otherEvent : eventList ) {
-                        if ( isConflict(event, otherEvent) ) {
-                            throw new ScheduleConflictException(otherEvent);
-                        }
+        for ( Entry<DayOfWeek, Map<LocalDate, List<MediaEvent>>> dowEntry : allEvents.entrySet() ) {
+            for ( Entry<LocalDate, List<MediaEvent>> dateEntry : dowEntry.getValue().entrySet() ) {
+                List<MediaEvent> eventList = dateEntry.getValue();
+                for ( MediaEvent otherEvent : eventList ) {
+                    if ( isConflict(event, otherEvent) ) {
+                        throw new ScheduleConflictException(otherEvent);
                     }
                 }
             }
-        } else {
-            // need to figure out how to handle repeats
         }
     }
 
     private boolean isConflict(MediaEvent thisEvent, MediaEvent otherEvent) {
-        if ( thisEvent.getStartDate().equals(otherEvent.getStartDate()) ) {
-            LocalTime thisStart = thisEvent.getStartTime();
-            LocalTime thisEnd = thisEvent.getEndTime();
-            LocalTime otherStart = otherEvent.getStartTime();
-            LocalTime otherEnd = otherEvent.getEndTime();
-            if (
-                       (thisStart.compareTo(otherStart) <= 0 && thisEnd.compareTo(otherStart) > 0)
-                    || (thisStart.compareTo(otherStart) > 0 && thisEnd.compareTo(otherEnd) < 0)
-                    || (thisStart.compareTo(otherEnd) < 0 && thisEnd.compareTo(otherEnd) >= 0 )
-            ) {
-                return true;
+        if ( timesOverlap(thisEvent, otherEvent) ) {
+            if ( thisEvent.isRepeating() || otherEvent.isRepeating() ) {
+                Set<DayOfWeek> common = commonDays(thisEvent, otherEvent);
+                return !common.isEmpty();
+            } else {
+                return thisEvent.getStartDate().equals(otherEvent.getStartDate());
             }
-
         }
         return false;
+    }
+
+    private Set<DayOfWeek> commonDays(MediaEvent thisEvent, MediaEvent otherEvent) {
+        Set<DayOfWeek> result = new HashSet<>();
+        DayOfWeek thisStartDay = thisEvent.getStartDate().getDayOfWeek();
+        DayOfWeek otherStartDay = otherEvent.getStartDate().getDayOfWeek();
+        if ( otherEvent.getRepeatOn().contains(thisStartDay) ) {
+            result.add(thisStartDay);
+        }
+        if ( thisEvent.getRepeatOn().contains(otherStartDay) ) {
+            result.add(otherStartDay);
+        }
+        for ( DayOfWeek dow : DayOfWeek.values() ) {
+            if ( thisEvent.getRepeatOn().contains(dow) && otherEvent.getRepeatOn().contains(dow) ) {
+                result.add(dow);
+            }
+        }
+        return result;
+    }
+
+    private boolean timesOverlap(MediaEvent thisEvent, MediaEvent otherEvent) {
+        LocalTime thisStart = thisEvent.getStartTime();
+        LocalTime thisEnd = thisEvent.getEndTime();
+        LocalTime otherStart = otherEvent.getStartTime();
+        LocalTime otherEnd = otherEvent.getEndTime();
+        return (
+                           (thisStart.compareTo(otherStart) <= 0 && thisEnd.compareTo(otherStart) > 0)
+                        || (thisStart.compareTo(otherStart) > 0 && thisEnd.compareTo(otherEnd) < 0)
+                        || (thisStart.compareTo(otherEnd) < 0 && thisEnd.compareTo(otherEnd) >= 0 )
+                );
     }
 
     private void addEventToMap(MediaEvent event, DayOfWeek dow, LocalDate date) {
@@ -134,20 +168,6 @@ public class Schedule {
     ///////////////////
     // Remove Events //
     ///////////////////
-
-    MediaEvent getEventById(long eventId) {
-        for ( Entry<DayOfWeek, Map<LocalDate, List<MediaEvent>>> dowEntry : allEvents.entrySet() ) {
-            for ( Entry<LocalDate, List<MediaEvent>> dateEntry : dowEntry.getValue().entrySet() ) {
-                List<MediaEvent> eventList = dateEntry.getValue();
-                for ( MediaEvent event : eventList ) {
-                    if ( event.getId()==eventId ) {
-                        return event;
-                    }
-                }
-            }
-        }
-        return null;
-    }
 
     boolean removeEvent(long eventId) {
         for ( Entry<DayOfWeek, Map<LocalDate, List<MediaEvent>>> dowEntry : allEvents.entrySet() ) {

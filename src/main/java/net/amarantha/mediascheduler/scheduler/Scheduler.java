@@ -64,10 +64,6 @@ public class Scheduler {
         return schedules;
     }
 
-    public Schedule getSchedule(int priority) {
-        return schedules.get(priority);
-    }
-
     public MediaEvent getCurrentEvent() {
         for ( int priority = MAX_PRIORITY; priority>0; priority-- ) {
             Schedule schedule = schedules.get(priority);
@@ -83,7 +79,6 @@ public class Scheduler {
 
     public MediaEvent addEvent(MediaEvent event) throws ScheduleConflictException {
         try {
-            addCueList(event.getCueList());
             return addEvent(1, event);
         } catch (PriorityOutOfBoundsException ignored) {}
         return null;
@@ -112,6 +107,20 @@ public class Scheduler {
         for ( Entry<Integer, Schedule> entry : schedules.entrySet() ) {
             MediaEvent event = entry.getValue().getEventById(eventId);
             if ( event!=null ) {
+                return event;
+            }
+        }
+        return null;
+    }
+
+    public MediaEvent switchPriority(long eventId, int priority) throws PriorityOutOfBoundsException, ScheduleConflictException {
+        for ( Entry<Integer, Schedule> entry : schedules.entrySet() ) {
+            Schedule oldSchedule = entry.getValue();
+            MediaEvent event = oldSchedule.getEventById(eventId);
+            if ( event!=null ) {
+                addEvent(priority, event);
+                oldSchedule.removeEvent(event.getId());
+                checkSchedule();
                 return event;
             }
         }

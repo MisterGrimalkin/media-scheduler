@@ -11,6 +11,7 @@ import net.amarantha.mediascheduler.entity.CueList;
 import net.amarantha.mediascheduler.entity.MediaEvent;
 import net.amarantha.mediascheduler.exception.PriorityOutOfBoundsException;
 import net.amarantha.mediascheduler.exception.ScheduleConflictException;
+import net.amarantha.mediascheduler.exception.SchedulerException;
 import net.amarantha.mediascheduler.midi.Midi;
 import net.amarantha.mediascheduler.midi.MidiCommand;
 import net.amarantha.mediascheduler.midi.MidiMock;
@@ -24,6 +25,7 @@ import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
 
+import static java.time.DayOfWeek.*;
 import static net.amarantha.mediascheduler.scheduler.Scheduler.MAX_PRIORITY;
 import static org.junit.Assert.*;
 
@@ -37,24 +39,23 @@ public class TestScheduler {
     @Inject private Midi midi;
     @Inject private Projector projector;
 
-    private static final int CUE_1 = 1;
-    private static final String CUE_NAME_1 = "Dragons";
-    private static final int CUE_2 = 2;
-    private static final String CUE_NAME_2 = "Polar Bears";
-    private static final int CUE_3 = 3;
-    private static final String CUE_NAME_3 = "Skinny Dips";
+    private static final CueList CUE_LIST_FAIL = new CueList(0, "This Will Fail");
+    private static final CueList CUE_LIST_1 = new CueList(1, "Dragons");
+    private static final CueList CUE_LIST_2 = new CueList(2, "Polar Bears");
+    private static final CueList CUE_LIST_3 = new CueList(3, "Skinny Dips");
 
     @Story
     public void testScheduleCursor() {
 
-        when_add_priority_$1_event_$2_$3_on_$4_from_$5_to_$6(1, 1, "This Will Fail", "2016-03-01", "12:00", "11:00", IllegalArgumentException.class);
+        when_add_priority_$1_event_$2_on_$3_from_$4_to_$5(1, CUE_LIST_FAIL, "2016-03-01", "12:00", "11:00",
+                IllegalArgumentException.class);
 
-        when_add_priority_$1_event_$2_$3_on_$4_from_$5_to_$6(1, CUE_1, CUE_NAME_1, "2016-03-02", "10:00", "11:00");
-        when_add_priority_$1_event_$2_$3_on_$4_from_$5_to_$6(1, CUE_2, CUE_NAME_2, "2016-03-02", "12:00", "14:00");
+        when_add_priority_$1_event_$2_on_$3_from_$4_to_$5(1, CUE_LIST_1, "2016-03-02", "10:00", "11:00");
+        when_add_priority_$1_event_$2_on_$3_from_$4_to_$5(1, CUE_LIST_2, "2016-03-02", "12:00", "14:00");
             Long id3 =
-        when_add_priority_$1_event_$2_$3_on_$4_from_$5_to_$6(1, CUE_3, CUE_NAME_3, "2016-03-04", "14:00", "18:00");
+        when_add_priority_$1_event_$2_on_$3_from_$4_to_$5(1, CUE_LIST_3, "2016-03-04", "14:00", "18:00");
 
-        then_event_$1_is_$2(id3, CUE_NAME_3);
+        then_event_$1_is_$2(id3, CUE_LIST_3);
 
         then_there_are_$1_events_between_$2_and_$3(3, "2016-03-01", "2016-03-08");
 
@@ -73,24 +74,24 @@ public class TestScheduler {
         then_last_command_was_$1_value_$2(ArKaosMidiCommand.CUE_LIST, 0);
 
         when_time_is_$1("10:00");
-        then_current_cuelist_is_$1(CUE_NAME_1);
-        then_last_command_was_$1_value_$2(ArKaosMidiCommand.CUE_LIST, CUE_1);
+        then_current_cuelist_is_$1(CUE_LIST_1);
+        then_last_command_was_$1_value_$2(ArKaosMidiCommand.CUE_LIST, CUE_LIST_1.getNumber());
 
         when_time_is_$1("10:59");
-        then_current_cuelist_is_$1(CUE_NAME_1);
-        then_last_command_was_$1_value_$2(ArKaosMidiCommand.CUE_LIST, CUE_1);
+        then_current_cuelist_is_$1(CUE_LIST_1);
+        then_last_command_was_$1_value_$2(ArKaosMidiCommand.CUE_LIST, CUE_LIST_1.getNumber());
 
         when_time_is_$1("11:00");
         then_current_cuelist_is_$1(null);
         then_last_command_was_$1_value_$2(ArKaosMidiCommand.CUE_LIST, 0);
 
         when_time_is_$1("12:00");
-        then_current_cuelist_is_$1(CUE_NAME_2);
-        then_last_command_was_$1_value_$2(ArKaosMidiCommand.CUE_LIST, CUE_2);
+        then_current_cuelist_is_$1(CUE_LIST_2);
+        then_last_command_was_$1_value_$2(ArKaosMidiCommand.CUE_LIST, CUE_LIST_2.getNumber());
 
         when_time_is_$1("13:30");
-        then_current_cuelist_is_$1(CUE_NAME_2);
-        then_last_command_was_$1_value_$2(ArKaosMidiCommand.CUE_LIST, CUE_2);
+        then_current_cuelist_is_$1(CUE_LIST_2);
+        then_last_command_was_$1_value_$2(ArKaosMidiCommand.CUE_LIST, CUE_LIST_2.getNumber());
 
         when_time_is_$1("14:00");
         then_current_cuelist_is_$1(null);
@@ -98,11 +99,12 @@ public class TestScheduler {
 
         when_date_is_$1("2016-03-04");
         then_there_are_$1_events_today(1);
-        then_current_cuelist_is_$1(CUE_NAME_3);
-        then_last_command_was_$1_value_$2(ArKaosMidiCommand.CUE_LIST, CUE_3);
+        then_current_cuelist_is_$1(CUE_LIST_3);
+        then_last_command_was_$1_value_$2(ArKaosMidiCommand.CUE_LIST, CUE_LIST_3.getNumber());
 
         when_remove_event_$1(id3);
         then_there_are_$1_events_today(0);
+        then_there_are_$1_events_between_$2_and_$3(2, "2016-03-01", "2016-03-08");
         then_current_cuelist_is_$1(null);
         then_last_command_was_$1_value_$2(ArKaosMidiCommand.CUE_LIST, 0);
 
@@ -111,43 +113,56 @@ public class TestScheduler {
     @Story
     public void testSchedulePriority() {
 
-        when_add_priority_$1_event_$2_$3_on_$4_from_$5_to_$6(0, 1, "This Will Fail", "2016-03-01", "10:00", "11:00", PriorityOutOfBoundsException.class);
-        when_add_priority_$1_event_$2_$3_on_$4_from_$5_to_$6(MAX_PRIORITY+1, 1, "This Also Will Fail", "2016-03-01", "10:00", "11:00", PriorityOutOfBoundsException.class);
+        when_add_priority_$1_event_$2_on_$3_from_$4_to_$5(0, CUE_LIST_FAIL, "2016-03-01", "10:00", "11:00",
+                PriorityOutOfBoundsException.class);
 
-        when_add_priority_$1_event_$2_$3_on_$4_from_$5_to_$6(1, CUE_1, CUE_NAME_1, "2016-03-03", "10:00", "12:00");
-        when_add_priority_$1_event_$2_$3_on_$4_from_$5_to_$6(1, CUE_2, CUE_NAME_2, "2016-03-03", "12:00", "14:00");
+        when_add_priority_$1_event_$2_on_$3_from_$4_to_$5(MAX_PRIORITY+1, CUE_LIST_FAIL, "2016-03-01", "10:00", "11:00",
+                PriorityOutOfBoundsException.class);
+
+        when_add_priority_$1_event_$2_on_$3_from_$4_to_$5(2, CUE_LIST_1, "2016-03-03", "10:00", "12:00");
+        when_add_priority_$1_event_$2_on_$3_from_$4_to_$5(2, CUE_LIST_2, "2016-03-03", "12:00", "14:00");
 
         when_date_is_$1("2016-03-03");
 
         then_there_are_$1_events_today(2);
 
         when_time_is_$1("11:30");
-        then_current_cuelist_is_$1(CUE_NAME_1);
-        then_last_command_was_$1_value_$2(ArKaosMidiCommand.CUE_LIST, CUE_1);
+        then_current_cuelist_is_$1(CUE_LIST_1);
+        then_last_command_was_$1_value_$2(ArKaosMidiCommand.CUE_LIST, CUE_LIST_1.getNumber());
 
         when_time_is_$1("12:30");
-        then_current_cuelist_is_$1(CUE_NAME_2);
-        then_last_command_was_$1_value_$2(ArKaosMidiCommand.CUE_LIST, CUE_2);
+        then_current_cuelist_is_$1(CUE_LIST_2);
+        then_last_command_was_$1_value_$2(ArKaosMidiCommand.CUE_LIST, CUE_LIST_2.getNumber());
 
-        when_add_priority_$1_event_$2_$3_on_$4_from_$5_to_$6(2, CUE_3, CUE_NAME_3, "2016-03-03", "11:00", "13:00");
+        Long id =
+        when_add_priority_$1_event_$2_on_$3_from_$4_to_$5(3, CUE_LIST_3, "2016-03-03", "11:00", "13:00");
 
         then_there_are_$1_events_today(3);
 
         when_time_is_$1("10:30");
-        then_current_cuelist_is_$1(CUE_NAME_1);
-        then_last_command_was_$1_value_$2(ArKaosMidiCommand.CUE_LIST, CUE_1);
+        then_current_cuelist_is_$1(CUE_LIST_1);
+        then_last_command_was_$1_value_$2(ArKaosMidiCommand.CUE_LIST, CUE_LIST_1.getNumber());
 
         when_time_is_$1("11:30");
-        then_current_cuelist_is_$1(CUE_NAME_3);
-        then_last_command_was_$1_value_$2(ArKaosMidiCommand.CUE_LIST, CUE_3);
+        then_current_cuelist_is_$1(CUE_LIST_3);
+        then_last_command_was_$1_value_$2(ArKaosMidiCommand.CUE_LIST, CUE_LIST_3.getNumber());
 
         when_time_is_$1("12:30");
-        then_current_cuelist_is_$1(CUE_NAME_3);
-        then_last_command_was_$1_value_$2(ArKaosMidiCommand.CUE_LIST, CUE_3);
+        then_current_cuelist_is_$1(CUE_LIST_3);
+        then_last_command_was_$1_value_$2(ArKaosMidiCommand.CUE_LIST, CUE_LIST_3.getNumber());
+
+        when_switch_event_$1_to_priority_$2(id, 1);
+        then_current_cuelist_is_$1(CUE_LIST_2);
+        when_switch_event_$1_to_priority_$2(id, 3);
+        then_current_cuelist_is_$1(CUE_LIST_3);
+        when_switch_event_$1_to_priority_$2(id, -1, PriorityOutOfBoundsException.class);
+        then_current_cuelist_is_$1(CUE_LIST_3);
+        when_switch_event_$1_to_priority_$2(id, 2, ScheduleConflictException.class);
+        then_current_cuelist_is_$1(CUE_LIST_3);
 
         when_time_is_$1("13:30");
-        then_current_cuelist_is_$1(CUE_NAME_2);
-        then_last_command_was_$1_value_$2(ArKaosMidiCommand.CUE_LIST, CUE_2);
+        then_current_cuelist_is_$1(CUE_LIST_2);
+        then_last_command_was_$1_value_$2(ArKaosMidiCommand.CUE_LIST, CUE_LIST_2.getNumber());
 
     }
 
@@ -156,8 +171,8 @@ public class TestScheduler {
 
         String date = "2016-03-03";
 
-        when_add_priority_$1_event_$2_$3_on_$4_from_$5_to_$6(1, CUE_1, CUE_NAME_1, date, "10:00", "12:00");
-        when_add_priority_$1_event_$2_$3_on_$4_from_$5_to_$6(1, CUE_2, CUE_NAME_2, date, "14:00", "16:00");
+        when_add_priority_$1_event_$2_on_$3_from_$4_to_$5(1, CUE_LIST_1, date, "10:00", "12:00");
+        when_add_priority_$1_event_$2_on_$3_from_$4_to_$5(1, CUE_LIST_2, date, "14:00", "16:00");
 
         when_date_is_$1(date);
 
@@ -165,35 +180,89 @@ public class TestScheduler {
 
         // No conflicts
 
-        Long id = when_add_priority_$1_event_$2_$3_on_$4_from_$5_to_$6(1, CUE_3, CUE_NAME_3, date, "09:00", "10:00");
+        Long id = when_add_priority_$1_event_$2_on_$3_from_$4_to_$5(1, CUE_LIST_3, date, "09:00", "10:00");
         then_there_are_$1_events_today(3);
         when_remove_event_$1(id);
         then_there_are_$1_events_today(2);
 
-        id = when_add_priority_$1_event_$2_$3_on_$4_from_$5_to_$6(1, CUE_3, CUE_NAME_3, date, "12:00", "14:00");
+        id = when_add_priority_$1_event_$2_on_$3_from_$4_to_$5(1, CUE_LIST_3, date, "12:00", "14:00");
         then_there_are_$1_events_today(3);
         when_remove_event_$1(id);
         then_there_are_$1_events_today(2);
 
-        id = when_add_priority_$1_event_$2_$3_on_$4_from_$5_to_$6(1, CUE_3, CUE_NAME_3, date, "16:00", "16:01");
+        id = when_add_priority_$1_event_$2_on_$3_from_$4_to_$5(1, CUE_LIST_3, date, "16:00", "16:01");
         then_there_are_$1_events_today(3);
         when_remove_event_$1(id);
+        then_there_are_$1_events_today(2);
+        when_remove_event_$1(99);
         then_there_are_$1_events_today(2);
 
         // Conflicts
 
-        when_add_priority_$1_event_$2_$3_on_$4_from_$5_to_$6(1, CUE_3, CUE_NAME_3, date, "09:00", "11:00", ScheduleConflictException.class);
+        when_add_priority_$1_event_$2_on_$3_from_$4_to_$5(1, CUE_LIST_3, date, "09:00", "11:00", ScheduleConflictException.class);
         then_there_are_$1_events_today(2);
 
-        when_add_priority_$1_event_$2_$3_on_$4_from_$5_to_$6(1, CUE_3, CUE_NAME_3, date, "10:30", "11:30", ScheduleConflictException.class);
+        when_add_priority_$1_event_$2_on_$3_from_$4_to_$5(1, CUE_LIST_3, date, "10:30", "11:30", ScheduleConflictException.class);
         then_there_are_$1_events_today(2);
 
-        when_add_priority_$1_event_$2_$3_on_$4_from_$5_to_$6(1, CUE_3, CUE_NAME_3, date, "11:00", "13:00", ScheduleConflictException.class);
+        when_add_priority_$1_event_$2_on_$3_from_$4_to_$5(1, CUE_LIST_3, date, "11:00", "13:00", ScheduleConflictException.class);
         then_there_are_$1_events_today(2);
 
-        when_add_priority_$1_event_$2_$3_on_$4_from_$5_to_$6(1, CUE_3, CUE_NAME_3, date, "13:00", "17:00", ScheduleConflictException.class);
+        when_add_priority_$1_event_$2_on_$3_from_$4_to_$5(1, CUE_LIST_3, date, "13:00", "17:00", ScheduleConflictException.class);
         then_there_are_$1_events_today(2);
 
+    }
+
+    @Story
+    public void testRepeats() {
+
+        String date = "2016-03-14";         // a Monday
+
+        when_add_priority_$1_event_$2_on_$3_from_$4_to_$5(1, CUE_LIST_1, date, "10:00", "12:00", MONDAY, TUESDAY);
+        when_add_priority_$1_event_$2_on_$3_from_$4_to_$5(1, CUE_LIST_2, date, "12:00", "14:00", TUESDAY, WEDNESDAY);
+        when_add_priority_$1_event_$2_on_$3_from_$4_to_$5(1, CUE_LIST_3, date, "14:00", "18:00", WEDNESDAY, FRIDAY, SATURDAY);
+
+        then_there_are_$1_events_between_$2_and_$3(0, "2016-03-07", "2016-03-13");
+        then_there_are_$1_events_between_$2_and_$3(7, "2016-03-14", "2016-03-20");
+        then_there_are_$1_events_between_$2_and_$3(7, "2016-03-21", "2016-03-27");
+
+        when_date_is_$1("2016-03-21");
+        then_there_are_$1_events_today(1);
+        when_time_is_$1("09:00");
+        then_current_cuelist_is_$1(null);
+        when_time_is_$1("11:00");
+        then_current_cuelist_is_$1(CUE_LIST_1);
+
+        when_date_is_$1("2016-03-29");
+        then_there_are_$1_events_today(2);
+        when_time_is_$1("11:00");
+        then_current_cuelist_is_$1(CUE_LIST_1);
+        when_time_is_$1("13:00");
+        then_current_cuelist_is_$1(CUE_LIST_2);
+
+        when_date_is_$1("2016-03-30");
+        then_there_are_$1_events_today(2);
+        when_time_is_$1("13:00");
+        then_current_cuelist_is_$1(CUE_LIST_2);
+        when_time_is_$1("14:00");
+        then_current_cuelist_is_$1(CUE_LIST_3);
+
+        when_date_is_$1("2016-03-31");
+        then_there_are_$1_events_today(0);
+
+    }
+
+    @Story
+    public void testRepeatsConflicts() {
+
+        when_add_priority_$1_event_$2_on_$3_from_$4_to_$5(1, CUE_LIST_2, "2016-03-14", "10:00", "12:00", MONDAY, SUNDAY);
+        when_add_priority_$1_event_$2_on_$3_from_$4_to_$5(1, CUE_LIST_2, "2016-03-21", "11:00", "13:00", ScheduleConflictException.class);
+
+        when_add_priority_$1_event_$2_on_$3_from_$4_to_$5(1, CUE_LIST_2, "2016-03-23", "21:00", "23:00");
+        when_add_priority_$1_event_$2_on_$3_from_$4_to_$5(1, CUE_LIST_2, "2016-03-14", "21:00", "23:30", ScheduleConflictException.class, MONDAY, WEDNESDAY);
+
+        when_add_priority_$1_event_$2_on_$3_from_$4_to_$5(1, CUE_LIST_2, "2016-03-17", "21:00", "23:00", THURSDAY, FRIDAY);
+        when_add_priority_$1_event_$2_on_$3_from_$4_to_$5(1, CUE_LIST_2, "2016-03-15", "21:00", "23:30", ScheduleConflictException.class, TUESDAY, FRIDAY);
     }
 
 
@@ -252,16 +321,16 @@ public class TestScheduler {
         scheduler.checkSchedule();
     }
 
-    private Long when_add_priority_$1_event_$2_$3_on_$4_from_$5_to_$6(int priority, int cueListId, String cueListName, String date, String start, String end, DayOfWeek... repeats) {
-        return when_add_priority_$1_event_$2_$3_on_$4_from_$5_to_$6(priority, cueListId, cueListName, date, start, end, null, repeats);
+    private Long when_add_priority_$1_event_$2_on_$3_from_$4_to_$5(int priority, CueList cueList, String date, String start, String end, DayOfWeek... repeats) {
+        return when_add_priority_$1_event_$2_on_$3_from_$4_to_$5(priority, cueList, date, start, end, null, repeats);
     }
 
-    Long when_add_priority_$1_event_$2_$3_on_$4_from_$5_to_$6(int priority, int cueListId, String cueListName, String date, String start, String end, Class<? extends Exception> expectedExceptionClass, DayOfWeek... repeats) {
+    Long when_add_priority_$1_event_$2_on_$3_from_$4_to_$5(int priority, CueList cueList, String date, String start, String end, Class<? extends Exception> expectedExceptionClass, DayOfWeek... repeats) {
         Long result = null;
         try {
             result = priority==1
-                    ? scheduler.addEvent(new MediaEvent(nextEventId++, new CueList(cueListId, cueListName), date, start, end, repeats)).getId()
-                    : scheduler.addEvent(priority, new MediaEvent(nextEventId++, new CueList(cueListId, cueListName), date, start, end, repeats)).getId()
+                    ? scheduler.addEvent(new MediaEvent(nextEventId++, cueList, date, start, end, repeats)).getId()
+                    : scheduler.addEvent(priority, new MediaEvent(nextEventId++, cueList, date, start, end, repeats)).getId()
             ;
             if ( expectedExceptionClass!=null ) {
                 fail("Expected an exception");
@@ -275,8 +344,26 @@ public class TestScheduler {
         return result;
     }
 
+    private void when_switch_event_$1_to_priority_$2(Long eventId, int priority) {
+        when_switch_event_$1_to_priority_$2(eventId, priority, null);
+    }
+
+    void when_switch_event_$1_to_priority_$2(Long eventId, int priority, Class<? extends SchedulerException> expectedExceptionClass) {
+        try {
+            scheduler.switchPriority(eventId, priority);
+            if ( expectedExceptionClass!=null ) {
+                fail("Expected an exception");
+            }
+        } catch (SchedulerException e) {
+            if (expectedExceptionClass == null) {
+                fail("Did not expect an exception: " + e.getMessage());
+            }
+            then_exception_thrown(expectedExceptionClass, e.getClass());
+        }
+    }
+
     void when_remove_event_$1(long eventId) {
-        assertTrue(scheduler.removeEvent(eventId));
+        scheduler.removeEvent(eventId);
     }
 
     private static int nextEventId = 1;
@@ -308,17 +395,17 @@ public class TestScheduler {
         assertEquals(count, total);
     }
 
-    void then_event_$1_is_$2(long eventId, String cueName) {
+    void then_event_$1_is_$2(long eventId, CueList cueList) {
         MediaEvent actualEvent = scheduler.getEventById(eventId);
-        assertEquals(cueName, actualEvent.getCueList().getName());
+        assertEquals(cueList, actualEvent.getCueList());
     }
 
-    void then_current_cuelist_is_$1(String name) {
+    void then_current_cuelist_is_$1(CueList cueList) {
         MediaEvent currentEvent = scheduler.getCurrentEvent();
         if ( currentEvent==null ) {
-            assertNull(name);
+            assertNull(cueList);
         } else {
-            assertEquals(name, currentEvent.getCueList().getName());
+            assertEquals(cueList, currentEvent.getCueList());
         }
     }
 

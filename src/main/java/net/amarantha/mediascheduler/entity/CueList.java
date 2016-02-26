@@ -36,4 +36,9 @@ public class CueList {
         result = 31 * result + name.hashCode();
         return result;
     }
+
+    @Override
+    public String toString() {
+        return number + ":" + name;
+    }
 }

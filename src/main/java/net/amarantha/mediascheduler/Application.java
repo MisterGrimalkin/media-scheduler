@@ -15,7 +15,7 @@ public class Application {
         System.out.println("Starting Up");
         scheduler.startup();
 
-        scheduler.testMidi();
+//        scheduler.testMidi();
 
         System.out.println("Press ENTER to quit...");
         Scanner sc = new Scanner(System.in);
