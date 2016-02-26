@@ -1,14 +1,10 @@
 package net.amarantha.mediascheduler.utility;
 
 import javax.inject.Singleton;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
-import java.time.*;
-import java.time.temporal.TemporalAdjuster;
-import java.time.temporal.TemporalField;
-import java.util.Date;
-
-import static java.lang.System.currentTimeMillis;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.time.ZoneOffset;
 
 @Singleton
 public class Now {

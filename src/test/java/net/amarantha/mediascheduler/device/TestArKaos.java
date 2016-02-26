@@ -12,7 +12,8 @@ import net.amarantha.mediascheduler.midi.MidiCommand;
 import net.amarantha.mediascheduler.midi.MidiMock;
 import org.junit.runner.RunWith;
 
-import static net.amarantha.mediascheduler.device.ArKaosMidiCommand.*;
+import static net.amarantha.mediascheduler.device.ArKaosMidiCommand.BRIGHTNESS;
+import static net.amarantha.mediascheduler.device.ArKaosMidiCommand.CONTRAST;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 

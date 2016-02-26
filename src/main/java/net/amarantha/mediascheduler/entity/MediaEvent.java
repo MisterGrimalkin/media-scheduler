@@ -3,7 +3,9 @@ package net.amarantha.mediascheduler.entity;
 import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.LocalTime;
-import java.util.*;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Set;
 
 public class MediaEvent implements Comparable<MediaEvent> {
 

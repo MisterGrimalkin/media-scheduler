@@ -8,7 +8,6 @@ import net.amarantha.mediascheduler.entity.CueList;
 import net.amarantha.mediascheduler.entity.MediaEvent;
 import net.amarantha.mediascheduler.exception.PriorityOutOfBoundsException;
 import net.amarantha.mediascheduler.exception.ScheduleConflictException;
-import net.amarantha.mediascheduler.exception.SchedulerException;
 import net.amarantha.mediascheduler.utility.Now;
 
 import java.util.*;
