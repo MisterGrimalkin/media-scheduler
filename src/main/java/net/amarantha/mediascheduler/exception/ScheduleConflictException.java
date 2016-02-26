@@ -1,16 +1,19 @@
 package net.amarantha.mediascheduler.exception;
 
+import net.amarantha.mediascheduler.entity.MediaEvent;
+
 public class ScheduleConflictException extends SchedulerException {
 
-    public ScheduleConflictException() {
+    private MediaEvent conflictingEvent;
+
+    public ScheduleConflictException(MediaEvent conflictingEvent) {
+        super("Schedule Conflict");
+        this.conflictingEvent = conflictingEvent;
     }
 
-    public ScheduleConflictException(String message) {
-        super(message);
-    }
 
-    public ScheduleConflictException(String message, Throwable cause) {
-        super(message, cause);
-    }
 
+    public MediaEvent getConflictingEvent() {
+        return conflictingEvent;
+    }
 }

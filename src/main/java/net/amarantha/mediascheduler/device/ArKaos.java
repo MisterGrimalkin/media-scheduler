@@ -2,6 +2,7 @@ package net.amarantha.mediascheduler.device;
 
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
+import net.amarantha.mediascheduler.entity.CueList;
 import net.amarantha.mediascheduler.midi.Midi;
 
 import static javax.sound.midi.ShortMessage.NOTE_OFF;
@@ -11,22 +12,35 @@ import static net.amarantha.mediascheduler.device.ArKaosMidiCommand.*;
 @Singleton
 public class ArKaos {
 
+    private CueList currentCueList;
+
     @Inject
     private Midi midi;
 
     public ArKaos() {
     }
 
-    public void open() {
+    public void startup() {
         midi.openDevice();
     }
 
-    public void close() {
+    public void shutdown() {
+        stopCueList();
         midi.closeDevice();
     }
 
-    public void startCueList(int id) {
-        midi.send(CUE.command, id);
+    public void startCueList(CueList cueList) {
+        currentCueList = cueList;
+        midi.send(CUE_LIST.command, cueList.getNumber());
+    }
+
+    public void stopCueList() {
+        currentCueList = null;
+        midi.send(CUE_LIST.command, 0);
+    }
+
+    public CueList getCurrentCueList() {
+        return currentCueList;
     }
 
     public void setBrightness(int brightness) {

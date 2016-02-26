@@ -6,6 +6,7 @@ import com.googlecode.guicebehave.Modules;
 import com.googlecode.guicebehave.Story;
 import com.googlecode.guicebehave.StoryRunner;
 import net.amarantha.mediascheduler.TestModule;
+import net.amarantha.mediascheduler.entity.CueList;
 import net.amarantha.mediascheduler.midi.Midi;
 import net.amarantha.mediascheduler.midi.MidiCommand;
 import net.amarantha.mediascheduler.midi.MidiMock;
@@ -29,11 +30,11 @@ public class TestArKaos {
         when_start_media_server();
         then_midi_device_is_open_$1(true);
 
-        when_trigger_cue_list_$1(0);
-        then_last_command_was_$1_value_$2(CUE, 0);
+//        when_trigger_cue_list_$1(0);
+//        then_last_command_was_$1_value_$2(CUE_LIST, 0);
 
-        when_trigger_cue_list_$1(9);
-        then_last_command_was_$1_value_$2(CUE, 9);
+//        when_trigger_cue_list_$1(9);
+//        then_last_command_was_$1_value_$2(CUE_LIST, 9);
 
         when_set_brightness_$1(50);
         then_last_command_was_$1_value_$2(BRIGHTNESS, 50);
@@ -47,15 +48,15 @@ public class TestArKaos {
     }
 
     void when_start_media_server() {
-        mediaServer.open();
+        mediaServer.startup();
     }
 
     void when_stop_media_server() {
-        mediaServer.close();
+        mediaServer.shutdown();
     }
 
-    void when_trigger_cue_list_$1(int id) {
-        mediaServer.startCueList(id);
+    void when_trigger_cue_list_$1(CueList cueList) {
+        mediaServer.startCueList(cueList);
     }
 
     void when_set_brightness_$1(int brightness) {

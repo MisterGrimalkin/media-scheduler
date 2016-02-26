@@ -20,7 +20,7 @@ public class MidiImpl implements Midi {
             midiDevice = getMidiDevice(name);
             midiDevice.open();
         } catch (MidiUnavailableException e) {
-            System.err.println("Could not open MIDI device '" + name + "': " + e.getMessage());
+            System.err.println("Could not startup MIDI device '" + name + "': " + e.getMessage());
         }
     }
 

@@ -6,63 +6,121 @@ import net.amarantha.mediascheduler.device.ArKaos;
 import net.amarantha.mediascheduler.device.Projector;
 import net.amarantha.mediascheduler.entity.CueList;
 import net.amarantha.mediascheduler.entity.MediaEvent;
-import net.amarantha.mediascheduler.exception.DuplicateEventException;
+import net.amarantha.mediascheduler.exception.PriorityOutOfBoundsException;
 import net.amarantha.mediascheduler.exception.ScheduleConflictException;
 import net.amarantha.mediascheduler.exception.SchedulerException;
 import net.amarantha.mediascheduler.utility.Now;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
 @Singleton
 public class Scheduler {
 
-    private List<MediaEvent> events = new ArrayList<>();
-    private List<CueList> cueLists;
-
     @Inject private ArKaos mediaServer;
     @Inject private Projector projector;
 
-    public Scheduler() {
+    @Inject private Now now;
+
+    public Scheduler() {}
+
+    ///////////////
+    // Cue Lists //
+    ///////////////
+
+    private Set<CueList> cueLists = new HashSet<>();
+
+    public CueList addCueList(CueList cueList) {
+        cueLists.add(cueList);
+        return cueList;
     }
 
-    public MediaEvent addEvent(MediaEvent event) throws SchedulerException {
-        checkConflicts(event);
-        events.add(event);
+    public Set<CueList> getCueLists() {
+        return cueLists;
+    }
+
+    ///////////////
+    // Schedules //
+    ///////////////
+
+    private Map<Integer, Schedule> schedules = new LinkedHashMap<>();
+
+    public static final int MAX_PRIORITY = 10;
+
+    public Schedule createSchedule(int priority) throws PriorityOutOfBoundsException {
+        if ( priority < 1 || priority > MAX_PRIORITY ) {
+            throw new PriorityOutOfBoundsException("Priority must be between 1 (lowest) and " + MAX_PRIORITY + " (highest)");
+        }
+        Schedule schedule = new Schedule();
+        schedules.put(priority, schedule);
+        return schedule;
+    }
+
+    public Schedule getSchedule(int priority) {
+        return schedules.get(priority);
+    }
+
+    public MediaEvent getCurrentEvent() {
+        for ( int priority = 1; priority<=MAX_PRIORITY; priority++ ) {
+            Schedule schedule = schedules.get(priority);
+            if ( schedule!=null ) {
+                MediaEvent event = schedule.getEvent(now.now());
+                if ( event!=null ) {
+                    return event;
+                }
+            }
+        }
+        return null;
+    }
+
+    public MediaEvent addEvent(MediaEvent event) throws ScheduleConflictException {
+        try {
+            addCueList(event.getCueList());
+            return addEvent(1, event);
+        } catch (PriorityOutOfBoundsException ignored) {}
+        return null;
+    }
+
+    public MediaEvent addEvent(int priority, MediaEvent event) throws PriorityOutOfBoundsException, ScheduleConflictException {
+        Schedule schedule = schedules.get(priority);
+        if ( schedule==null ) {
+            schedule = createSchedule(priority);
+        }
+        schedule.addEvent(event);
         return event;
     }
 
-    private boolean checkConflicts(MediaEvent newEvent) throws SchedulerException {
-        for ( MediaEvent event : events ) {
-//            if ( event.getDescription().equals(newEvent.getDescription()) ) {
-//                throw new DuplicateEventException("Event description '" + newEvent.getDescription() + "' already in use");
-//            }
-//            if ( event.getStartTime().before(newEvent.getStartTime()) && event.getEndTime().after(newEvent.getStartTime()) ) {
-//                throw new ScheduleConflictException("Conflicts with event " + event.getId() + " " + event.getDescription());
-//            }
-        }
-        return false;
-    }
 
-    private static long nextId = 1;
+    ////////////////////////
+    // Startup & Shutdown //
+    ////////////////////////
 
-//    public MediaEvent createEvent(int cuelist, String description, String start, String end) throws SchedulerException {
-//        return addEvent(new MediaEvent(nextId++, cuelist, description, Now.parseDateTime(start), Now.parseDateTime(end)));
-//    }
-
-    public List<MediaEvent> getEvents() {
-        return events;
-    }
+    private Timer timer;
 
     public void startup() {
-        mediaServer.open();
+        mediaServer.startup();
         projector.switchOn(true);
+        startSchedulerLoop();
+    }
+
+    private void startSchedulerLoop() {
+        timer = new Timer();
+        timer.schedule(new TimerTask() {
+            @Override
+            public void run() {
+            }
+        }, 0, 1000);
     }
 
     public void shutdown() {
-        mediaServer.close();
+        mediaServer.shutdown();
         projector.switchOn(false);
+        if ( timer!=null ) {
+            timer.cancel();
+        }
     }
 
+    public void testMidi() {
+        mediaServer.testMidi();
+    }
 
 }
