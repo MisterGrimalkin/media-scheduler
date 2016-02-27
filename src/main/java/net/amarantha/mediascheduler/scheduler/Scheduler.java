@@ -6,6 +6,8 @@ import net.amarantha.mediascheduler.device.ArKaos;
 import net.amarantha.mediascheduler.device.Projector;
 import net.amarantha.mediascheduler.entity.CueList;
 import net.amarantha.mediascheduler.entity.MediaEvent;
+import net.amarantha.mediascheduler.exception.CueListInUseException;
+import net.amarantha.mediascheduler.exception.CueListNotFoundException;
 import net.amarantha.mediascheduler.exception.PriorityOutOfBoundsException;
 import net.amarantha.mediascheduler.exception.ScheduleConflictException;
 import net.amarantha.mediascheduler.utility.Now;
@@ -38,6 +40,20 @@ public class Scheduler {
         return cueLists;
     }
 
+    public void removeCueList(CueList cueList) throws CueListInUseException {
+        List<MediaEvent> events = getEventsByCueList(cueList);
+        if ( events.isEmpty() ) {
+            cueLists.remove(cueList);
+        } else {
+            throw new CueListInUseException("CueList " + cueList + " is used by " + events.size() + " events");
+        }
+    }
+
+    void clearCueLists() {
+        cueLists.clear();
+    }
+
+
     ///////////////
     // Schedules //
     ///////////////
@@ -46,7 +62,7 @@ public class Scheduler {
 
     public static final int MAX_PRIORITY = 10;
 
-    public void clearSchedules() {
+    void clearSchedules() {
         schedules.clear();
     }
 
@@ -76,14 +92,18 @@ public class Scheduler {
         return null;
     }
 
-    public MediaEvent addEvent(MediaEvent event) throws ScheduleConflictException {
+    public MediaEvent addEvent(MediaEvent event) throws ScheduleConflictException, CueListNotFoundException {
         try {
             return addEvent(1, event);
         } catch (PriorityOutOfBoundsException ignored) {}
         return null;
     }
 
-    public MediaEvent addEvent(int priority, MediaEvent event) throws PriorityOutOfBoundsException, ScheduleConflictException {
+    public MediaEvent addEvent(int priority, MediaEvent event) throws PriorityOutOfBoundsException, ScheduleConflictException, CueListNotFoundException {
+        CueList cueList = event.getCueList();
+        if ( !cueLists.contains(cueList) ) {
+            throw new CueListNotFoundException("Cue List " + (event==null?"":cueList.getNumber()+":"+cueList.getName()) + " not found");
+        }
         Schedule schedule = schedules.get(priority);
         if ( schedule==null ) {
             schedule = createSchedule(priority);
@@ -112,7 +132,16 @@ public class Scheduler {
         return null;
     }
 
-    public MediaEvent switchPriority(long eventId, int priority) throws PriorityOutOfBoundsException, ScheduleConflictException {
+    public List<MediaEvent> getEventsByCueList(CueList cueList) {
+        List<MediaEvent> result = new ArrayList<>();
+        for ( Entry<Integer, Schedule> entry : schedules.entrySet() ) {
+            Schedule schedule = entry.getValue();
+            result.addAll(schedule.getEventsByCueList(cueList));
+        }
+        return result;
+    }
+
+    public MediaEvent switchPriority(long eventId, int priority) throws PriorityOutOfBoundsException, ScheduleConflictException, CueListNotFoundException {
         for ( Entry<Integer, Schedule> entry : schedules.entrySet() ) {
             Schedule oldSchedule = entry.getValue();
             MediaEvent event = oldSchedule.getEventById(eventId);
@@ -152,12 +181,8 @@ public class Scheduler {
         }, 0, 1000);
     }
 
-    public void pause() {
-        paused = true;
-    }
-
-    public void resume() {
-        paused = false;
+    public void pause(boolean paused) {
+        this.paused = paused;
     }
 
     void checkSchedule() {
@@ -181,10 +206,6 @@ public class Scheduler {
         if ( timer!=null ) {
             timer.cancel();
         }
-    }
-
-    public void testMidi() {
-        mediaServer.testMidi();
     }
 
 }

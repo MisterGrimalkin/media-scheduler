@@ -1,5 +1,8 @@
 package net.amarantha.mediascheduler.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.LocalTime;
@@ -31,57 +34,90 @@ public class MediaEvent implements Comparable<MediaEvent> {
         repeatOn.addAll(Arrays.asList(repeats));
     }
 
+
+    /////////////
+    // Getters //
+    /////////////
+
     public long getId() {
         return id;
-    }
-
-    public void setId(long id) {
-        this.id = id;
     }
 
     public CueList getCueList() {
         return cueList;
     }
 
-    public void setCueList(CueList cueList) {
-        this.cueList = cueList;
-    }
-
+    @JsonIgnore
     public LocalDate getStartDate() {
         return startDate;
     }
 
-    public void setStartDate(LocalDate startDate) {
-        this.startDate = startDate;
-    }
-
+    @JsonIgnore
     public LocalTime getStartTime() {
         return startTime;
     }
 
-    public void setStartTime(LocalTime startTime) {
-        this.startTime = startTime;
-    }
-
+    @JsonIgnore
     public LocalTime getEndTime() {
         return endTime;
-    }
-
-    public void setEndTime(LocalTime endTime) {
-        this.endTime = endTime;
     }
 
     public Set<DayOfWeek> getRepeatOn() {
         return repeatOn;
     }
 
+    public boolean isRepeating() {
+        return !repeatOn.isEmpty();
+    }
+
+    @JsonProperty("startDate")
+    String getStartDateString() {
+        return startDate.toString();
+    }
+
+    @JsonProperty("startTime")
+    String getStartTimeString() {
+        return startTime.toString();
+    }
+
+    @JsonProperty("endTime")
+    String getEndTimeString() {
+        return endTime.toString();
+    }
+
+
+    /////////////
+    // Setters //
+    /////////////
+
+    public void setId(long id) {
+        this.id = id;
+    }
+
+    public void setCueList(CueList cueList) {
+        this.cueList = cueList;
+    }
+
+    public void setStartDate(LocalDate startDate) {
+        this.startDate = startDate;
+    }
+
+    public void setStartTime(LocalTime startTime) {
+        this.startTime = startTime;
+    }
+
+    public void setEndTime(LocalTime endTime) {
+        this.endTime = endTime;
+    }
+
     public void setRepeatOn(Set<DayOfWeek> repeatOn) {
         this.repeatOn = repeatOn;
     }
 
-    public boolean isRepeating() {
-        return !repeatOn.isEmpty();
-    }
+
+    ////////////////
+    // Comparison //
+    ////////////////
 
     @Override
     public int compareTo(MediaEvent o) {

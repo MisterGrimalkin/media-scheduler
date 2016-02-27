@@ -9,9 +9,7 @@ import net.amarantha.mediascheduler.device.ArKaosMidiCommand;
 import net.amarantha.mediascheduler.device.Projector;
 import net.amarantha.mediascheduler.entity.CueList;
 import net.amarantha.mediascheduler.entity.MediaEvent;
-import net.amarantha.mediascheduler.exception.PriorityOutOfBoundsException;
-import net.amarantha.mediascheduler.exception.ScheduleConflictException;
-import net.amarantha.mediascheduler.exception.SchedulerException;
+import net.amarantha.mediascheduler.exception.*;
 import net.amarantha.mediascheduler.midi.Midi;
 import net.amarantha.mediascheduler.midi.MidiCommand;
 import net.amarantha.mediascheduler.midi.MidiMock;
@@ -43,6 +41,30 @@ public class TestScheduler {
     private static final CueList CUE_LIST_1 = new CueList(1, "Dragons");
     private static final CueList CUE_LIST_2 = new CueList(2, "Polar Bears");
     private static final CueList CUE_LIST_3 = new CueList(3, "Skinny Dips");
+    private static final CueList CUE_LIST_4 = new CueList(4, "Does Not Exist");
+
+    @Story
+    public void testCueLists() {
+
+        then_there_are_$1_cuelists(4);
+
+        when_add_priority_$1_event_$2_on_$3_from_$4_to_$5(1, CUE_LIST_4, "2016-03-02", "10:00", "11:00", CueListNotFoundException.class);
+
+        when_add_cuelist_$1(CUE_LIST_4);
+        then_there_are_$1_cuelists(5);
+
+        Long id =
+        when_add_priority_$1_event_$2_on_$3_from_$4_to_$5(1, CUE_LIST_4, "2016-03-02", "10:00", "11:00");
+
+        when_remove_cuelist_$1(CUE_LIST_4, true);
+        then_there_are_$1_cuelists(5);
+
+        when_remove_event_$1(id);
+
+        when_remove_cuelist_$1(CUE_LIST_4, false);
+        then_there_are_$1_cuelists(4);
+
+    }
 
     @Story
     public void testScheduleCursor() {
@@ -55,6 +77,7 @@ public class TestScheduler {
             Long id3 =
         when_add_priority_$1_event_$2_on_$3_from_$4_to_$5(1, CUE_LIST_3, "2016-03-04", "14:00", "18:00");
 
+        then_event_$1_exists_$2(id3, true);
         then_event_$1_is_$2(id3, CUE_LIST_3);
 
         then_there_are_$1_events_between_$2_and_$3(3, "2016-03-01", "2016-03-08");
@@ -103,6 +126,7 @@ public class TestScheduler {
         then_last_command_was_$1_value_$2(ArKaosMidiCommand.CUE_LIST, CUE_LIST_3.getNumber());
 
         when_remove_event_$1(id3);
+        then_event_$1_exists_$2(id3, false);
         then_there_are_$1_events_today(0);
         then_there_are_$1_events_between_$2_and_$3(2, "2016-03-01", "2016-03-08");
         then_current_cuelist_is_$1(null);
@@ -265,6 +289,19 @@ public class TestScheduler {
         when_add_priority_$1_event_$2_on_$3_from_$4_to_$5(1, CUE_LIST_2, "2016-03-15", "21:00", "23:30", ScheduleConflictException.class, TUESDAY, FRIDAY);
     }
 
+    @Story
+    public void testPersistence() {
+
+        when_add_priority_$1_event_$2_on_$3_from_$4_to_$5(1, CUE_LIST_1, "2016-03-14", "10:00", "12:00", MONDAY, TUESDAY);
+        when_add_priority_$1_event_$2_on_$3_from_$4_to_$5(1, CUE_LIST_2, "2016-03-14", "12:00", "14:00", MONDAY, WEDNESDAY);
+        when_add_priority_$1_event_$2_on_$3_from_$4_to_$5(2, CUE_LIST_3, "2016-03-14", "14:00", "18:00", FRIDAY);
+
+        loader.saveSchedules();
+
+
+    }
+
+    @Inject private ScheduleLoader loader;
 
     ///////////
     // Setup //
@@ -278,12 +315,22 @@ public class TestScheduler {
         then_midi_active_$1(true);
         then_projector_active_$1(true);
         then_last_command_was_$1_value_$2(ArKaosMidiCommand.CUE_LIST, 0);
+        when_setup_cuelists();
     }
 
     void when_start_scheduler() {
+        scheduler.clearCueLists();
         scheduler.clearSchedules();
         scheduler.startup();
-        scheduler.pause();      // We will manually "tick" the scheduler
+        scheduler.pause(true);      // We will manually "tick" the scheduler
+    }
+
+    void when_setup_cuelists() {
+        when_add_cuelist_$1(CUE_LIST_FAIL);
+        when_add_cuelist_$1(CUE_LIST_1);
+        when_add_cuelist_$1(CUE_LIST_2);
+        when_add_cuelist_$1(CUE_LIST_3);
+        then_there_are_$1_cuelists(4);
     }
 
     @After
@@ -319,6 +366,24 @@ public class TestScheduler {
     void when_time_is_$1(String time) {
         now.setTime(time);
         scheduler.checkSchedule();
+    }
+
+    void when_add_cuelist_$1(CueList cueList) {
+        scheduler.addCueList(cueList);
+    }
+
+    void when_remove_cuelist_$1(CueList cueList, boolean expectFail) {
+        try {
+            scheduler.removeCueList(cueList);
+            if ( expectFail ) {
+                fail("Expected an exception");
+            }
+        } catch (Exception e) {
+            if ( !expectFail ) {
+                fail("Did not expect an exception: " + e.getMessage());
+            }
+            then_exception_thrown(CueListInUseException.class, e.getClass());
+        }
     }
 
     private Long when_add_priority_$1_event_$2_on_$3_from_$4_to_$5(int priority, CueList cueList, String date, String start, String end, DayOfWeek... repeats) {
@@ -373,6 +438,10 @@ public class TestScheduler {
     // Then //
     //////////
 
+    void then_there_are_$1_cuelists(int count) {
+        assertEquals(count, scheduler.getCueLists().size());
+    }
+
     void then_there_are_$1_events_today(int count) {
         int total = 0;
         for (Map.Entry<Integer, Schedule> entry : scheduler.getSchedules().entrySet() ) {
@@ -393,6 +462,17 @@ public class TestScheduler {
             }
         }
         assertEquals(count, total);
+    }
+
+    void then_event_$1_exists_$2(Long eventId, boolean exists) {
+        MediaEvent event = scheduler.getEventById(eventId);
+        assertEquals(exists, event!=null);
+        try {
+            event = scheduler.switchPriority(eventId, Scheduler.MAX_PRIORITY);
+            assertEquals(exists, event!=null);
+        } catch (SchedulerException e) {
+            fail("Did not expect an exception: " + e.getMessage());
+        }
     }
 
     void then_event_$1_is_$2(long eventId, CueList cueList) {
@@ -425,6 +505,5 @@ public class TestScheduler {
         assertEquals(command.data1, lastCommand[2]);
         assertEquals(value, lastCommand[3]);
     }
-
 
 }

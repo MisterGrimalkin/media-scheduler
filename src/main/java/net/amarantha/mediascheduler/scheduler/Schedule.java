@@ -1,5 +1,6 @@
 package net.amarantha.mediascheduler.scheduler;
 
+import net.amarantha.mediascheduler.entity.CueList;
 import net.amarantha.mediascheduler.entity.MediaEvent;
 import net.amarantha.mediascheduler.exception.ScheduleConflictException;
 
@@ -26,6 +27,22 @@ public class Schedule {
     ////////////////
     // Get Events //
     ////////////////
+
+    List<MediaEvent> getUniqueEvents() {
+        Set<Long> ids = new HashSet<>();
+        List<MediaEvent> result = new ArrayList<>();
+        for ( Entry<DayOfWeek, Map<LocalDate, List<MediaEvent>>> dowEntry : allEvents.entrySet() ) {
+            for ( Entry<LocalDate, List<MediaEvent>> dateEntry : dowEntry.getValue().entrySet() ) {
+                for ( MediaEvent event : dateEntry.getValue() ) {
+                    if ( !ids.contains(event.getId()) ) {
+                        result.add(event);
+                        ids.add(event.getId());
+                    }
+                }
+            }
+        }
+        return result;
+    }
 
     public MediaEvent getEvent(LocalDateTime dateTime) {
         return getEvent(dateTime.toLocalDate(), dateTime.toLocalTime());
@@ -78,6 +95,21 @@ public class Schedule {
             }
         }
         return null;
+    }
+
+    List<MediaEvent> getEventsByCueList(CueList cueList) {
+        List<MediaEvent> result = new ArrayList<>();
+        for ( Entry<DayOfWeek, Map<LocalDate, List<MediaEvent>>> dowEntry : allEvents.entrySet() ) {
+            for ( Entry<LocalDate, List<MediaEvent>> dateEntry : dowEntry.getValue().entrySet() ) {
+                List<MediaEvent> eventList = dateEntry.getValue();
+                for ( MediaEvent event : eventList ) {
+                    if ( event.getCueList().equals(cueList) ) {
+                        result.add(event);
+                    }
+                }
+            }
+        }
+        return result;
     }
 
 
@@ -181,30 +213,6 @@ public class Schedule {
             }
         }
         return false;
-    }
-
-
-
-    ///////////////
-    // Debugging //
-    ///////////////
-
-    public void printEvents(LocalDate date) {
-        printEvents(date, date);
-    }
-
-    public void printEvents(LocalDate from, LocalDate to) {
-        Map<LocalDate, List<MediaEvent>> events = getEvents(from, to);
-        for ( Entry<LocalDate, List<MediaEvent>> entry : events.entrySet() ) {
-            System.out.println(entry.getKey().getDayOfWeek() + " " + entry.getKey());
-            if ( entry.getValue().isEmpty() ) {
-                System.out.println("\t(none)");
-            } else {
-                for (MediaEvent event : entry.getValue()) {
-                    System.out.println("\t"+event.getStartTime() + " - " + event.getEndTime() + " : " + event.getCueList().getName());
-                }
-            }
-        }
     }
 
 }
