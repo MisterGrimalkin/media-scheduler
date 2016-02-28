@@ -1,11 +1,15 @@
-package net.amarantha.mediascheduler.entity;
+package net.amarantha.mediascheduler.scheduler;
+
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 public class CueList {
 
     private int number;
     private String name;
 
-    public CueList(int number, String name) {
+    @JsonCreator
+    public CueList(@JsonProperty("number") int number, @JsonProperty("name") String name) {
         this.number = number;
         this.name = name;
     }

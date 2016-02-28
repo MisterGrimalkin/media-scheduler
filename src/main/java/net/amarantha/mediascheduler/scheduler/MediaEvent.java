@@ -1,5 +1,6 @@
-package net.amarantha.mediascheduler.entity;
+package net.amarantha.mediascheduler.scheduler;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
@@ -12,6 +13,8 @@ import java.util.Set;
 
 public class MediaEvent implements Comparable<MediaEvent> {
 
+    static int nextId = 0;
+
     private long id;
 
     private CueList cueList;
@@ -22,7 +25,18 @@ public class MediaEvent implements Comparable<MediaEvent> {
 
     private Set<DayOfWeek> repeatOn = new HashSet<>();
 
-    public MediaEvent(long id, CueList cueList, String startDateStr, String startTimeStr, String endTimeStr, DayOfWeek... repeats) throws IllegalArgumentException {
+    @JsonCreator
+    public MediaEvent(
+            @JsonProperty("cueList") CueList cueList,
+            @JsonProperty("startDate") String startDateStr,
+            @JsonProperty("startTime") String startTimeStr,
+            @JsonProperty("endTime") String endTimeStr,
+            @JsonProperty("repeatOn") DayOfWeek... repeats) throws IllegalArgumentException {
+        this(nextId, cueList, startDateStr, startTimeStr, endTimeStr, repeats);
+        nextId++;
+    }
+
+    public MediaEvent(int id, CueList cueList, String startDateStr, String startTimeStr, String endTimeStr, DayOfWeek... repeats) throws IllegalArgumentException {
         startTime = LocalTime.parse(startTimeStr);
         endTime  = LocalTime.parse(endTimeStr);
         if ( startTime.isAfter(endTime) ) {

@@ -1,7 +1,5 @@
 package net.amarantha.mediascheduler.scheduler;
 
-import net.amarantha.mediascheduler.entity.CueList;
-import net.amarantha.mediascheduler.entity.MediaEvent;
 import net.amarantha.mediascheduler.exception.ScheduleConflictException;
 
 import java.time.DayOfWeek;

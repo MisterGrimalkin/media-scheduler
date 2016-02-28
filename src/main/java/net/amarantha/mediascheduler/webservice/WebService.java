@@ -2,6 +2,7 @@ package net.amarantha.mediascheduler.webservice;
 
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
+import net.amarantha.mediascheduler.utility.PropertyManager;
 import org.glassfish.grizzly.http.server.HttpServer;
 import org.glassfish.jersey.filter.LoggingFilter;
 import org.glassfish.jersey.grizzly2.httpserver.GrizzlyHttpServerFactory;
@@ -15,16 +16,21 @@ public class WebService {
     private HttpServer server;
 
     @Inject private ScheduleResource scheduleResource;
+    @Inject private ControlResource controlResource;
+
+    @Inject private PropertyManager props;
 
     public HttpServer startWebService() {
 
         System.out.println("Starting Web Service....");
 
-        String fullUri = "http://127.0.0.1:8001/mediascheduler/";
-        final ResourceConfig rc = new ResourceConfig().packages("net.amarantha.mediascheduler.webservice");
+        String fullUri = "http://"+props.getString("ip","127.0.0.1")+":8001/mediascheduler/";
+
+        ResourceConfig rc = new ResourceConfig().packages("net.amarantha.mediascheduler.webservice");
         rc.register(LoggingFilter.class);
 
         server = GrizzlyHttpServerFactory.createHttpServer(URI.create(fullUri), rc);
+
         System.out.println("Web Service Online @ " + fullUri);
 
         return server;

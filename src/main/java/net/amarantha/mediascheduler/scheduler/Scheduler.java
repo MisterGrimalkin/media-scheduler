@@ -4,8 +4,6 @@ import com.google.inject.Inject;
 import com.google.inject.Singleton;
 import net.amarantha.mediascheduler.device.ArKaos;
 import net.amarantha.mediascheduler.device.Projector;
-import net.amarantha.mediascheduler.entity.CueList;
-import net.amarantha.mediascheduler.entity.MediaEvent;
 import net.amarantha.mediascheduler.exception.CueListInUseException;
 import net.amarantha.mediascheduler.exception.CueListNotFoundException;
 import net.amarantha.mediascheduler.exception.PriorityOutOfBoundsException;
@@ -30,6 +28,10 @@ public class Scheduler {
     ///////////////
 
     private Set<CueList> cueLists = new HashSet<>();
+
+    public CueList addCueList(Integer number, String name) {
+        return addCueList(new CueList(number, name));
+    }
 
     public CueList addCueList(CueList cueList) {
         cueLists.add(cueList);

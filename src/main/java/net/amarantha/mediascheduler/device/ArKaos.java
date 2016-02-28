@@ -2,12 +2,11 @@ package net.amarantha.mediascheduler.device;
 
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
-import net.amarantha.mediascheduler.entity.CueList;
 import net.amarantha.mediascheduler.midi.Midi;
+import net.amarantha.mediascheduler.midi.MidiCommand;
+import net.amarantha.mediascheduler.scheduler.CueList;
 
-import static javax.sound.midi.ShortMessage.NOTE_OFF;
-import static javax.sound.midi.ShortMessage.NOTE_ON;
-import static net.amarantha.mediascheduler.device.ArKaosMidiCommand.*;
+import static javax.sound.midi.ShortMessage.*;
 
 @Singleton
 public class ArKaos {
@@ -32,12 +31,12 @@ public class ArKaos {
 
     public void startCueList(CueList cueList) {
         currentCueList = cueList;
-        midi.send(CUE_LIST.command, cueList.getNumber());
+        cueListCommand(cueList).execute(midi);
     }
 
     public void stopCueList() {
         currentCueList = null;
-        midi.send(CUE_LIST.command, 0);
+        stopCommand().execute(midi);
     }
 
     public CueList getCurrentCueList() {
@@ -45,27 +44,62 @@ public class ArKaos {
     }
 
     public void setBrightness(int brightness) {
-        midi.send(BRIGHTNESS.command, brightness);
+        brightnessCommand(brightness).execute(midi);
     }
 
     public void setContrast(int contrast) {
-        midi.send(CONTRAST.command, contrast);
+        contrastCommand(contrast).execute(midi);
     }
 
-    public void testMidi() {
-        System.out.println("Running MIDI Test....");
-        try {
-            for (int i = 30; i < 100; i++) {
-                midi.send(NOTE_ON, 1, i, 100);
-                midi.send(NOTE_ON, 1, i + 7, 100);
-                Thread.sleep(50);
-                midi.send(NOTE_OFF, 1, i, 100);
-                midi.send(NOTE_OFF, 1, i + 7, 100);
+    //////////////
+    // Commands //
+    //////////////
+
+    public MidiCommand cueListCommand(CueList cueList) {
+        return new MidiCommand(NOTE_ON, 1, cueList.getNumber(), 100);
+    }
+
+    public MidiCommand brightnessCommand(int brightness) {
+        return new MidiCommand(NOTE_ON, 1, brightness, 120);
+    }
+
+    public MidiCommand contrastCommand(int contrast) {
+        return new MidiCommand(NOTE_OFF, 1, contrast, 60);
+    }
+
+    public MidiCommand stopCommand() {
+        return new MidiCommand() {
+            @Override
+            public void execute(Midi midi) {
+                for (int n = 0; n < 128; n++) {
+                    midi.send(NOTE_OFF, 1, n, 0);
+                }
             }
-        } catch (InterruptedException e) {
-            e.printStackTrace();
+        };
+    }
+
+
+    ///////////////
+    // Test Mode //
+    ///////////////
+
+    public void glissandoFifths() {
+        for (int i = 30; i < 100; i++) {
+            playFifth(i);
         }
-        System.out.println("MIDI Test Complete");
+        for (int i = 100; i > 30; i--) {
+            playFifth(i);
+        }
+    }
+
+    private void playFifth(int noteNo) {
+        try {
+            midi.send(NOTE_ON, 1, noteNo, 100);
+            midi.send(NOTE_ON, 1, noteNo + 7, 100);
+            Thread.sleep(50);
+            midi.send(NOTE_OFF, 1, noteNo, 100);
+            midi.send(NOTE_OFF, 1, noteNo + 7, 100);
+        } catch (InterruptedException ignored) {}
     }
 
 }

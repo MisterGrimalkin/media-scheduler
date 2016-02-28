@@ -1,6 +1,6 @@
 package net.amarantha.mediascheduler.exception;
 
-import net.amarantha.mediascheduler.entity.MediaEvent;
+import net.amarantha.mediascheduler.scheduler.MediaEvent;
 
 public class ScheduleConflictException extends SchedulerException {
 

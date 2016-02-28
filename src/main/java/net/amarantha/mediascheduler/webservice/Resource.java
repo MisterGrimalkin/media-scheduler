@@ -4,6 +4,10 @@ import javax.ws.rs.core.Response;
 
 public class Resource {
 
+    public Response ok() {
+        return ok("OK");
+    }
+
     public Response ok(String entity) {
         return Response.ok()
                 .header("Access-Control-Allow-Origin", "*")
