@@ -23,6 +23,7 @@ public class ControlResource extends Resource {
     @POST
     @Path("brightness")
     public Response setBrightness(@QueryParam("value") int brightness) {
+        System.out.println("try to set brightness="+brightness);
         if ( brightness < 0 || brightness > 127) {
             return error("Brightness value out of range");
         }
@@ -38,6 +39,13 @@ public class ControlResource extends Resource {
         }
         mediaServer.setContrast(contrast);
         return ok("Contrast set");
+    }
+
+    @POST
+    @Path("stop")
+    public Response stop() {
+        mediaServer.stopCueList();
+        return ok("Stopped");
     }
 
 }

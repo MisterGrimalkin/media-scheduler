@@ -44,6 +44,7 @@ public class ArKaos {
     }
 
     public void setBrightness(int brightness) {
+        System.out.println("brightness="+brightness);
         brightnessCommand(brightness).execute(midi);
     }
 

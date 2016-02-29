@@ -5,6 +5,7 @@ import net.amarantha.mediascheduler.scheduler.CueList;
 import net.amarantha.mediascheduler.scheduler.MediaEvent;
 import net.amarantha.mediascheduler.scheduler.JsonEncoder;
 import net.amarantha.mediascheduler.scheduler.Scheduler;
+import net.amarantha.mediascheduler.utility.Now;
 
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
@@ -14,15 +15,29 @@ import javax.ws.rs.core.Response;
 @Path("schedule")
 public class ScheduleResource extends Resource {
 
+    private static Now now;
     private static Scheduler scheduler;
     private static JsonEncoder json;
 
     public ScheduleResource() {}
 
     @Inject
-    public ScheduleResource(Scheduler scheduler, JsonEncoder json) {
+    public ScheduleResource(Now now, Scheduler scheduler, JsonEncoder json) {
+        ScheduleResource.now = now;
         ScheduleResource.scheduler = scheduler;
         ScheduleResource.json = json;
+    }
+
+    @GET
+    @Path("date")
+    public Response getDate() {
+        return ok(now.date().toString());
+    }
+
+    @GET
+    @Path("time")
+    public Response getTime() {
+        return ok(now.time().toString());
     }
 
     @GET
