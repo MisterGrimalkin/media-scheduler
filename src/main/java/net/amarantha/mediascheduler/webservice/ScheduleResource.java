@@ -7,10 +7,10 @@ import net.amarantha.mediascheduler.scheduler.JsonEncoder;
 import net.amarantha.mediascheduler.scheduler.Scheduler;
 import net.amarantha.mediascheduler.utility.Now;
 
-import javax.ws.rs.GET;
-import javax.ws.rs.POST;
-import javax.ws.rs.Path;
+import javax.ws.rs.*;
+import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+import java.time.LocalDate;
 
 @Path("schedule")
 public class ScheduleResource extends Resource {
@@ -35,14 +35,21 @@ public class ScheduleResource extends Resource {
     }
 
     @GET
+    @Produces(MediaType.TEXT_PLAIN)
     @Path("time")
     public Response getTime() {
         return ok(now.time().toString());
     }
 
     @GET
+    @Path("all")
     public Response get() {
         return ok(json.encodeAllSchedules());
+    }
+
+    @GET
+    public Response getForDate(@QueryParam("date") String date) {
+        return ok(json.encodeSchedule(1, LocalDate.parse(date)));
     }
 
     @POST
@@ -55,6 +62,14 @@ public class ScheduleResource extends Resource {
             return error("Could not create event: " + e.getMessage());
         }
         return ok("Event created");
+    }
+
+    @POST
+    @Path("remove")
+    public Response removeEvent(String content) {
+        int id = Integer.parseInt(content);
+        scheduler.removeEvent(id);
+        return ok(content);
     }
 
     @GET

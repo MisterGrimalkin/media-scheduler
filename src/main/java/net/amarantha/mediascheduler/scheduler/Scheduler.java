@@ -29,18 +29,30 @@ public class Scheduler {
 
     private Set<CueList> cueLists = new HashSet<>();
 
-    public CueList addCueList(Integer number, String name) {
-        return addCueList(new CueList(number, name));
+    public static int nextCueListId = 0;
+
+    public int addCueList(Integer number, String name) {
+        return addCueList(new CueList(nextCueListId++, number, name));
     }
 
-    public CueList addCueList(CueList cueList) {
+    public int addCueList(CueList cueList) {
         cueLists.add(cueList);
-        return cueList;
+        return cueList.getId();
     }
 
     public Set<CueList> getCueLists() {
         return cueLists;
     }
+
+    public CueList getCueList(int id) {
+        for ( CueList cueList : cueLists ) {
+            if ( cueList.getId()==id ) {
+                return cueList;
+            }
+        }
+        return null;
+    }
+
 
     public void removeCueList(CueList cueList) throws CueListInUseException {
         List<MediaEvent> events = getEventsByCueList(cueList);
@@ -102,9 +114,9 @@ public class Scheduler {
     }
 
     public MediaEvent addEvent(int priority, MediaEvent event) throws PriorityOutOfBoundsException, ScheduleConflictException, CueListNotFoundException {
-        CueList cueList = event.getCueList();
-        if ( !cueLists.contains(cueList) ) {
-            throw new CueListNotFoundException("Cue List " + (event==null?"":cueList.getNumber()+":"+cueList.getName()) + " not found");
+        CueList cueList = getCueList(event.getCueListId());
+        if ( cueList==null ) {
+            throw new CueListNotFoundException("Cue List " + event.getCueListId() + " not found");
         }
         Schedule schedule = schedules.get(priority);
         if ( schedule==null ) {
@@ -189,7 +201,7 @@ public class Scheduler {
 
     void checkSchedule() {
         MediaEvent currentEvent = getCurrentEvent();
-        CueList nextCueList = ( currentEvent==null ? null : currentEvent.getCueList() );
+        CueList nextCueList = ( currentEvent==null ? null : getCueList(currentEvent.getCueListId()) );
         CueList currentCueList = mediaServer.getCurrentCueList();
         if ( nextCueList==null ) {
             if ( currentCueList!=null ) {
@@ -197,7 +209,7 @@ public class Scheduler {
             }
         } else {
             if ( !nextCueList.equals(currentCueList) ) {
-                mediaServer.startCueList(currentEvent.getCueList());
+                mediaServer.startCueList(getCueList(currentEvent.getCueListId()));
             }
         }
     }

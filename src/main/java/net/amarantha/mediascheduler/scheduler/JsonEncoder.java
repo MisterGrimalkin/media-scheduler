@@ -8,6 +8,7 @@ import com.google.inject.Inject;
 import com.google.inject.Singleton;
 
 import java.io.IOException;
+import java.time.LocalDate;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -32,6 +33,7 @@ public class JsonEncoder {
     public MediaEvent parseMediaEvent(String json) {
         try {
             ObjectMapper mapper = new ObjectMapper();
+            System.out.println(json);
             MediaEvent event = mapper.readValue(json, MediaEvent.class);
             return event;
         } catch (IOException e) {
@@ -44,6 +46,9 @@ public class JsonEncoder {
         try {
             ObjectMapper mapper = new ObjectMapper();
             CueList cueList = mapper.readValue(json, CueList.class);
+            if ( cueList.getId()==-1 ) {
+                cueList.setId(Scheduler.nextCueListId++);
+            }
             return cueList;
         } catch (IOException e) {
             e.printStackTrace();
@@ -77,6 +82,19 @@ public class JsonEncoder {
 
         return null;
 
+    }
+
+    public String encodeSchedule(int priority, LocalDate date) {
+        List<MediaEvent> events = scheduler.getSchedules().get(priority).getEvents(date);
+        try {
+            ObjectMapper mapper = createMapper();
+            return mapper.writeValueAsString(events);
+
+        } catch (JsonProcessingException e) {
+            e.printStackTrace();
+        }
+
+        return null;
     }
 
     public String encodeCueLists() {

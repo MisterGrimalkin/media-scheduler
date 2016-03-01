@@ -10,18 +10,29 @@
     $output = curl_exec($c);
 
     if ( $output === false ) {
-        echo "Media Scheduler Offline";
+
+        echo wrap("div", ["class"=>"offline"], "Media Scheduler Offline");
+
     } else {
+
         $cuelists = json_decode($output, true);
+
         if ( count($cuelists)===0 ) {
-            echo "<p>No Cue Lists</p>";
+
+            echo wrap("div", ["class"=>"offline"], "No Cue Lists");
+
         } else {
+
             asort($cuelists);
             foreach ( $cuelists as $cuelist ) {
+            $id = $cuelist["id"];
             $number = $cuelist["number"];
             $name = $cuelist["name"];
-            echo wrap("button", ["type"=>"button","onclick"=>"showCueListForm(\"$number\", \"$name\");"], "$number: $name", true, true) . "<br>";
+            echo wrap("button", ["type"=>"button","class"=>"eventOnCueList$id", "onclick"=>"highlightEvents(\"$id\");"],
+                    "$number: $name", true, true) . "<br>";
+
         }
+
     }
         echo "<br><button type='button' onclick='showCueListForm();'>Add...</button>";
     }

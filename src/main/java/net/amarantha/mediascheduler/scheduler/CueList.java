@@ -5,13 +5,23 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 
 public class CueList {
 
+    private int id;
     private int number;
     private String name;
 
     @JsonCreator
-    public CueList(@JsonProperty("number") int number, @JsonProperty("name") String name) {
+    public CueList(@JsonProperty("id") int id, @JsonProperty("number") int number, @JsonProperty("name") String name) {
+        this.id = id;
         this.number = number;
         this.name = name;
+    }
+
+    public int getId() {
+        return id;
+    }
+
+    public void setId(int id) {
+        this.id = id;
     }
 
     public int getNumber() {
@@ -29,20 +39,17 @@ public class CueList {
 
         CueList cueList = (CueList) o;
 
-        if (number != cueList.number) return false;
-        return name.equals(cueList.name);
+        return id == cueList.id;
 
     }
 
     @Override
     public int hashCode() {
-        int result = number;
-        result = 31 * result + name.hashCode();
-        return result;
+        return id;
     }
 
     @Override
     public String toString() {
-        return number + ":" + name;
+        return id + "-" + number + ":" + name;
     }
 }

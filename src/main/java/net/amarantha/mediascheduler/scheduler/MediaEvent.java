@@ -3,6 +3,7 @@ package net.amarantha.mediascheduler.scheduler;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.google.inject.Inject;
 
 import java.time.DayOfWeek;
 import java.time.LocalDate;
@@ -17,7 +18,7 @@ public class MediaEvent implements Comparable<MediaEvent> {
 
     private long id;
 
-    private CueList cueList;
+    private int cueListId;
 
     private LocalDate startDate;
     private LocalTime startTime;
@@ -25,25 +26,27 @@ public class MediaEvent implements Comparable<MediaEvent> {
 
     private Set<DayOfWeek> repeatOn = new HashSet<>();
 
+    @Inject private Scheduler scheduler;
+
     @JsonCreator
     public MediaEvent(
-            @JsonProperty("cueList") CueList cueList,
+            @JsonProperty("cueListId") int cueListId,
             @JsonProperty("startDate") String startDateStr,
             @JsonProperty("startTime") String startTimeStr,
             @JsonProperty("endTime") String endTimeStr,
             @JsonProperty("repeatOn") DayOfWeek... repeats) throws IllegalArgumentException {
-        this(nextId, cueList, startDateStr, startTimeStr, endTimeStr, repeats);
+        this(nextId, cueListId, startDateStr, startTimeStr, endTimeStr, repeats);
         nextId++;
     }
 
-    public MediaEvent(int id, CueList cueList, String startDateStr, String startTimeStr, String endTimeStr, DayOfWeek... repeats) throws IllegalArgumentException {
+    public MediaEvent(int id, int cueListId, String startDateStr, String startTimeStr, String endTimeStr, DayOfWeek... repeats) throws IllegalArgumentException {
         startTime = LocalTime.parse(startTimeStr);
         endTime  = LocalTime.parse(endTimeStr);
         if ( startTime.isAfter(endTime) ) {
             throw new IllegalArgumentException("End Time must be after Start Time");
         }
         this.id = id;
-        this.cueList = cueList;
+        this.cueListId = cueListId;
         startDate = LocalDate.parse(startDateStr);
         repeatOn.addAll(Arrays.asList(repeats));
     }
@@ -57,8 +60,8 @@ public class MediaEvent implements Comparable<MediaEvent> {
         return id;
     }
 
-    public CueList getCueList() {
-        return cueList;
+    public int getCueListId() {
+        return cueListId;
     }
 
     @JsonIgnore
@@ -108,8 +111,8 @@ public class MediaEvent implements Comparable<MediaEvent> {
         this.id = id;
     }
 
-    public void setCueList(CueList cueList) {
-        this.cueList = cueList;
+    public void setCueList(int cueListId) {
+        this.cueListId = cueListId;
     }
 
     public void setStartDate(LocalDate startDate) {
@@ -150,7 +153,6 @@ public class MediaEvent implements Comparable<MediaEvent> {
         MediaEvent event = (MediaEvent) o;
 
         if (id != event.id) return false;
-        if (cueList != null ? !cueList.equals(event.cueList) : event.cueList != null) return false;
         if (startDate != null ? !startDate.equals(event.startDate) : event.startDate != null) return false;
         if (startTime != null ? !startTime.equals(event.startTime) : event.startTime != null) return false;
         if (endTime != null ? !endTime.equals(event.endTime) : event.endTime != null) return false;
@@ -161,7 +163,6 @@ public class MediaEvent implements Comparable<MediaEvent> {
     @Override
     public int hashCode() {
         int result = (int) (id ^ (id >>> 32));
-        result = 31 * result + (cueList != null ? cueList.hashCode() : 0);
         result = 31 * result + (startDate != null ? startDate.hashCode() : 0);
         result = 31 * result + (startTime != null ? startTime.hashCode() : 0);
         result = 31 * result + (endTime != null ? endTime.hashCode() : 0);

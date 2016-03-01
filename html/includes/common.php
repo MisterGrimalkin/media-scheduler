@@ -1,5 +1,33 @@
 <?php
 
+$url = "http://192.168.0.70:8001/mediascheduler";
+
+function getCueLists() {
+
+    $c = curl_init();
+    curl_setopt($c, CURLOPT_URL, "http://192.168.0.70:8001/mediascheduler/schedule/cuelist");
+    curl_setopt($c, CURLOPT_RETURNTRANSFER, 1);
+
+    $output = curl_exec($c);
+
+    $result = [];
+
+    if ( $output !== false ) {
+
+        $cuelists = json_decode($output, true);
+
+        if ( count($cuelists)>0 ) {
+
+            foreach($cuelists as $cueList) {
+                $result[$cueList["id"]] = $cueList;
+            }
+        }
+    }
+
+    curl_close($c);
+
+    return $result;
+}
 
 /////////
 // DOM //

@@ -2,11 +2,13 @@ package net.amarantha.mediascheduler;
 
 import com.google.inject.Inject;
 import net.amarantha.mediascheduler.exception.SchedulerException;
+import net.amarantha.mediascheduler.scheduler.CueList;
 import net.amarantha.mediascheduler.scheduler.MediaEvent;
 import net.amarantha.mediascheduler.scheduler.JsonEncoder;
 import net.amarantha.mediascheduler.scheduler.Scheduler;
 import net.amarantha.mediascheduler.webservice.WebService;
 
+import java.time.DayOfWeek;
 import java.util.Scanner;
 
 public class Application {
@@ -20,6 +22,8 @@ public class Application {
         System.out.println("Starting Up...");
         scheduler.startup();
         webService.startWebService();
+
+        testData();
 
         System.out.println("Media Scheduler is online\nPress ENTER to quit...");
         Scanner sc = new Scanner(System.in);
@@ -35,16 +39,30 @@ public class Application {
 
     private void testData() {
         try {
-            String start = "23:18";
 
-            scheduler.addEvent(new MediaEvent(scheduler.addCueList(60, "1"),
-                    "2016-02-27", start, start+":01"));
+            int cueList1 = scheduler.addCueList(60, "Lucy In The Sky");
+            int cueList2 = scheduler.addCueList(64, "Fixing A Hole");
+            int cueList3 = scheduler.addCueList(67, "Taxman");
 
-            scheduler.addEvent(new MediaEvent(scheduler.addCueList(64, "2"),
-                    "2016-02-27", start+":01", start+":02"));
 
-            scheduler.addEvent(new MediaEvent(scheduler.addCueList(67, "3"),
-                    "2016-02-27", start+":02", start+":06"));
+            scheduler.addEvent(new MediaEvent(cueList1,
+                    "2016-03-01", "15:00", "16:00"));
+
+            scheduler.addEvent(new MediaEvent(cueList2,
+                    "2016-03-01", "16:30", "18:30"));
+
+            scheduler.addEvent(new MediaEvent(cueList3,
+                    "2016-03-01", "18:30", "23:00"));
+
+            scheduler.addEvent(new MediaEvent(cueList1,
+                    "2016-03-02", "08:00", "16:00"));
+
+            scheduler.addEvent(new MediaEvent(cueList2,
+                    "2016-03-03", "10:00", "13:30"));
+
+            scheduler.addEvent(new MediaEvent(cueList3,
+                    "2016-03-03", "15:00", "20:00", DayOfWeek.THURSDAY, DayOfWeek.FRIDAY));
+
 
         } catch (SchedulerException e) {
             e.printStackTrace();

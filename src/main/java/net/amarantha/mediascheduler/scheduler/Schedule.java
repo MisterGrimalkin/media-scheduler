@@ -101,7 +101,7 @@ public class Schedule {
             for ( Entry<LocalDate, List<MediaEvent>> dateEntry : dowEntry.getValue().entrySet() ) {
                 List<MediaEvent> eventList = dateEntry.getValue();
                 for ( MediaEvent event : eventList ) {
-                    if ( event.getCueList().equals(cueList) ) {
+                    if ( event.getCueListId() == cueList.getId() ) {
                         result.add(event);
                     }
                 }
@@ -200,17 +200,18 @@ public class Schedule {
     ///////////////////
 
     boolean removeEvent(long eventId) {
+        boolean result = false;
         for ( Entry<DayOfWeek, Map<LocalDate, List<MediaEvent>>> dowEntry : allEvents.entrySet() ) {
             for ( Entry<LocalDate, List<MediaEvent>> dateEntry : dowEntry.getValue().entrySet() ) {
                 List<MediaEvent> eventList = dateEntry.getValue();
                 for ( MediaEvent event : eventList ) {
                     if ( event.getId()==eventId ) {
-                        return eventList.remove(event);
+                        result |= eventList.remove(event);
                     }
                 }
             }
         }
-        return false;
+        return result;
     }
 
 }

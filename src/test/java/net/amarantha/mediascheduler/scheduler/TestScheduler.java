@@ -35,11 +35,11 @@ public class TestScheduler {
     @Inject private Midi midi;
     @Inject private Projector projector;
 
-    private static final CueList CUE_LIST_FAIL = new CueList(0, "This Will Fail");
-    private static final CueList CUE_LIST_1 = new CueList(1, "Dragons");
-    private static final CueList CUE_LIST_2 = new CueList(2, "Polar Bears");
-    private static final CueList CUE_LIST_3 = new CueList(3, "Skinny Dips");
-    private static final CueList CUE_LIST_4 = new CueList(4, "Does Not Exist");
+    private static final CueList CUE_LIST_FAIL = new CueList(0, 0, "This Will Fail");
+    private static final CueList CUE_LIST_1 = new CueList(1, 1, "Dragons");
+    private static final CueList CUE_LIST_2 = new CueList(2, 2, "Polar Bears");
+    private static final CueList CUE_LIST_3 = new CueList(3, 3, "Skinny Dips");
+    private static final CueList CUE_LIST_4 = new CueList(4, 4, "Does Not Exist");
 
     @Story
     public void testCueLists() {
@@ -392,8 +392,8 @@ public class TestScheduler {
         Long result = null;
         try {
             result = priority==1
-                    ? scheduler.addEvent(new MediaEvent(nextEventId++, cueList, date, start, end, repeats)).getId()
-                    : scheduler.addEvent(priority, new MediaEvent(nextEventId++, cueList, date, start, end, repeats)).getId()
+                    ? scheduler.addEvent(new MediaEvent(nextEventId++, cueList.getId(), date, start, end, repeats)).getId()
+                    : scheduler.addEvent(priority, new MediaEvent(nextEventId++, cueList.getId(), date, start, end, repeats)).getId()
             ;
             if ( expectedExceptionClass!=null ) {
                 fail("Expected an exception");
@@ -475,7 +475,7 @@ public class TestScheduler {
 
     void then_event_$1_is_$2(long eventId, CueList cueList) {
         MediaEvent actualEvent = scheduler.getEventById(eventId);
-        assertEquals(cueList, actualEvent.getCueList());
+        assertEquals(cueList.getId(), actualEvent.getCueListId());
     }
 
     void then_current_cuelist_is_$1(CueList cueList) {
@@ -483,7 +483,7 @@ public class TestScheduler {
         if ( currentEvent==null ) {
             assertNull(cueList);
         } else {
-            assertEquals(cueList, currentEvent.getCueList());
+            assertEquals(cueList.getId(), currentEvent.getCueListId());
         }
     }
 
