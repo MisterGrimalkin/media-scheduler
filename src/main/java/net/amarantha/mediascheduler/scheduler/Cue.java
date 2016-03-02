@@ -3,14 +3,14 @@ package net.amarantha.mediascheduler.scheduler;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-public class CueList {
+public class Cue {
 
     private int id;
     private int number;
     private String name;
 
     @JsonCreator
-    public CueList(@JsonProperty("id") int id, @JsonProperty("number") int number, @JsonProperty("name") String name) {
+    public Cue(@JsonProperty("id") int id, @JsonProperty("number") int number, @JsonProperty("name") String name) {
         this.id = id;
         this.number = number;
         this.name = name;
@@ -37,9 +37,9 @@ public class CueList {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
 
-        CueList cueList = (CueList) o;
+        Cue cue = (Cue) o;
 
-        return id == cueList.id;
+        return id == cue.id;
 
     }
 

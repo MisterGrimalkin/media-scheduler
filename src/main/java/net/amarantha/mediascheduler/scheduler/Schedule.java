@@ -95,13 +95,13 @@ public class Schedule {
         return null;
     }
 
-    List<MediaEvent> getEventsByCueList(CueList cueList) {
+    List<MediaEvent> getEventsByCueList(Cue cue) {
         List<MediaEvent> result = new ArrayList<>();
         for ( Entry<DayOfWeek, Map<LocalDate, List<MediaEvent>>> dowEntry : allEvents.entrySet() ) {
             for ( Entry<LocalDate, List<MediaEvent>> dateEntry : dowEntry.getValue().entrySet() ) {
                 List<MediaEvent> eventList = dateEntry.getValue();
                 for ( MediaEvent event : eventList ) {
-                    if ( event.getCueListId() == cueList.getId() ) {
+                    if ( event.getCueId() == cue.getId() ) {
                         result.add(event);
                     }
                 }
@@ -204,11 +204,13 @@ public class Schedule {
         for ( Entry<DayOfWeek, Map<LocalDate, List<MediaEvent>>> dowEntry : allEvents.entrySet() ) {
             for ( Entry<LocalDate, List<MediaEvent>> dateEntry : dowEntry.getValue().entrySet() ) {
                 List<MediaEvent> eventList = dateEntry.getValue();
+                List<MediaEvent> eventsToRemove = new ArrayList<>();
                 for ( MediaEvent event : eventList ) {
                     if ( event.getId()==eventId ) {
-                        result |= eventList.remove(event);
+                        eventsToRemove.add(event);
                     }
                 }
+                result |= eventList.removeAll(eventsToRemove);
             }
         }
         return result;

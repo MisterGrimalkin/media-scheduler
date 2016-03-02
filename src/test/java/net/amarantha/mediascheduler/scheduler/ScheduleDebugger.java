@@ -18,7 +18,7 @@ public class ScheduleDebugger {
                 System.out.println("\t(none)");
             } else {
                 for (MediaEvent event : entry.getValue()) {
-                    System.out.println("\t"+event.getStartTime() + " - " + event.getEndTime() + " : " + event.getCueListId());
+                    System.out.println("\t"+event.getStartTime() + " - " + event.getEndTime() + " : " + event.getCueId());
                 }
             }
         }

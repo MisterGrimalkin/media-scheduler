@@ -1,17 +1,18 @@
 package net.amarantha.mediascheduler.scheduler;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 
+import java.io.File;
 import java.io.IOException;
 import java.time.LocalDate;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.Map.Entry;
 
 @Singleton
@@ -30,39 +31,6 @@ public class JsonEncoder {
         }
     }
 
-    public MediaEvent parseMediaEvent(String json) {
-        try {
-            ObjectMapper mapper = new ObjectMapper();
-            System.out.println(json);
-            MediaEvent event = mapper.readValue(json, MediaEvent.class);
-            return event;
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        return null;
-    }
-
-    public CueList parseCueList(String json) {
-        try {
-            ObjectMapper mapper = new ObjectMapper();
-            CueList cueList = mapper.readValue(json, CueList.class);
-            if ( cueList.getId()==-1 ) {
-                cueList.setId(Scheduler.nextCueListId++);
-            }
-            return cueList;
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        return null;
-    }
-
-
-
-
-    public void saveSchedules() {
-        System.out.println(encodeAllSchedules());
-    }
-
     public String encodeAllSchedules() {
 
         Map<Integer, Schedule> schedules = scheduler.getSchedules();
@@ -73,8 +41,7 @@ public class JsonEncoder {
         }
 
         try {
-            ObjectMapper mapper = createMapper();
-            return mapper.writeValueAsString(wrappers);
+            return createMapper().writeValueAsString(wrappers);
 
         } catch (JsonProcessingException e) {
             e.printStackTrace();
@@ -85,23 +52,87 @@ public class JsonEncoder {
     }
 
     public String encodeSchedule(int priority, LocalDate date) {
-        List<MediaEvent> events = scheduler.getSchedules().get(priority).getEvents(date);
-        try {
-            ObjectMapper mapper = createMapper();
-            return mapper.writeValueAsString(events);
+        Schedule schedule = scheduler.getSchedules().get(priority);
+        if ( schedule!=null ) {
+            List<MediaEvent> events = schedule.getEvents(date);
+            try {
+                return createMapper().writeValueAsString(events);
 
-        } catch (JsonProcessingException e) {
-            e.printStackTrace();
+            } catch (JsonProcessingException e) {
+                e.printStackTrace();
+            }
         }
-
         return null;
     }
 
-    public String encodeCueLists() {
-        ObjectMapper mapper = createMapper();
+    public String encodeCues() {
         try {
-            return mapper.writeValueAsString(scheduler.getCueLists());
+            return createMapper().writeValueAsString(scheduler.getCues());
         } catch (JsonProcessingException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    public void encodeCuesToFile(String filename) {
+        try {
+            createMapper().writeValue(new File(filename), scheduler.getCues());
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public Cue decodeCue(String json) {
+        try {
+            Cue cue = createMapper().readValue(json, Cue.class);
+            if ( cue.getId()==-1 ) {
+                cue.setId(Scheduler.nextCueId++);
+            }
+            return cue;
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    public Set<Cue> decodeCuesFromFile(String filename) {
+        Set<Cue> result = new HashSet<>();
+        try {
+            List<Cue> cues = createMapper().readValue(new File(filename), new TypeReference<List<Cue>>(){});
+            if ( cues!=null ) {
+                for (Cue cue : cues) {
+                    if (cue.getId() == -1) {
+                        cue.setId(Scheduler.nextCueId++);
+                    }
+                    result.add(cue);
+                }
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+            encodeCuesToFile(filename);
+        }
+        return result;
+    }
+
+    public String encodeMediaEvent(MediaEvent event) {
+        try {
+            return createMapper().writeValueAsString(event);
+        } catch (JsonProcessingException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+
+
+    public MediaEvent decodeMediaEvent(String json) {
+        try {
+            MediaEvent event = createMapper().readValue(json, MediaEvent.class);
+            if ( event.getId() == -1 ) {
+                event.setId(Scheduler.nextEventId++);
+            }
+            return event;
+        } catch (IOException e) {
             e.printStackTrace();
         }
         return null;
@@ -117,6 +148,8 @@ public class JsonEncoder {
         return mapper;
     }
 
-
+    public void saveSchedules() {
+        System.out.println(encodeAllSchedules());
+    }
 
 }

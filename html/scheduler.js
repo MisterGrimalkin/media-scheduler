@@ -1,27 +1,116 @@
-url = "http://192.168.0.70:8001/mediascheduler";
+var url;
 
 function onLoad() {
 
+    $("#eventForm").draggable();
+    $("#cueForm").draggable();
+    loadSchedule();
+
     setInterval(function() {
-        updateTime();
+        if ( !timePaused ) {
+            updateTime();
+        }
     }, 250);
 
-    $("#eventForm").draggable();
-    $("#cueListForm").draggable();
+    setInterval(function() {
+        $("#schedule").contents().find("#nowMarker").css("opacity",cursorOpacity);
+        cursorOpacity += cursorOpacityDelta;
+        if ( cursorOpacity >= 1 ) {
+            cursorOpacity = 1;
+            cursorOpacityDelta = -cursorOpacityDelta;
+        }
+        if ( cursorOpacity <= 0 ) {
+            cursorOpacity = 0;
+            cursorOpacityDelta = -cursorOpacityDelta;
+        }
+    }, 100);
+}
+
+var cursorOpacity = 0;
+var cursorOpacityDelta = 0.2;
+
+var timePaused = false;
+
+function loadSchedule() {
+    var w = window.innerWidth - 240;
+    var h = Math.max(window.innerHeight - 150, parseInt($("#sideBar").css("height")));
+    $("#schedule").attr("width", w+20);
+    $("#schedule").attr("height", window.innerHeight - 130);
+    $("#schedule").attr("src", "viewSchedule.php?date="+$("#searchDate").val()+"&width="+w+"&height="+h);
+}
+
+////////////
+// Events //
+////////////
+
+function showEventForm() {
+    mask(true);
+    $("#eventFormHeader").html("Create Event");
+    $("#eventForm").attr("class", "form shown editEvent");
+    $("#eventCueId").val(highlightedId);
+    $("#eventFormDate").val($("#searchDate").val());
+    $("#eventFormOK").html("Create");
+    $("#eventFormStartTime").focus();
+}
+
+function hideEventForm() {
+    $("#eventForm").attr("class", "form editEvent");
+    mask(false);
 }
 
 var selectedEvent = -1;
 
+
+function editEvents() {
+    window.alert("cunts are nice");
+}
+
+function editSelectedEvent() {
+    console.log("eidt");
+    editEvent($("#selectedEventId").prop("data-value"), url+"/schedule/event");
+}
+
+function editEvent(id, uri) {
+    $.ajax({
+        url: uri,
+        type: 'GET',
+        data: {
+            id: ""+id
+        },
+        success: function(response) {
+            var event = JSON.parse(response);
+            console.log(event["cueId"]);
+            showEventForm();
+            $("#eventFormHeader").html("Edit Event");
+            $("#eventHiddenId").val(event["id"]);
+            $("#eventFormDate").val(event["startDate"]);
+            $("#eventFormStartTime").val(event["startTime"])
+            $("#eventFormEndTime").val(event["endTime"])
+            $("#eventCueId").val(event["cueId"]);
+            $("#eventFormOK").html("Update");
+            $("#eventFormStartDate").focus();
+        },
+        fail: function(response) {
+            window.alert(response);
+        }
+    });
+
+}
+
 function removeEvent() {
+    var id = $("#selectedEventId").prop("data-value");
     var response = window.confirm("Really delete this event?");
     if ( response ) {
-        if ( selectedEvent>=0 ) {
+        if ( id>=0 ) {
             $.ajax({
-                url: 'actions/removeevent.php',
+                url: 'actions/removeEvent.php',
                 type: 'POST',
-                data: ""+selectedEvent,
+                data: ""+id,
                 success: function(response) {
                     location.reload();
+                },
+                fail: function(response) {
+                    window.alert(response);
                 }
             });
         }
@@ -29,35 +118,47 @@ function removeEvent() {
 }
 
 function selectEvent(id) {
-    console.log(id);
     if ( selectedEvent>=0 ) {
         $(".event"+selectedEvent).css("background-color", "");
-        $("#removeEvent").prop("disabled", "disabled");
+        $("#removeEvent", parent.document).prop("disabled", "disabled");
+        $("#editEvent", parent.document).prop("disabled", "disabled");
     }
-    if ( selectedEvent!==id ) {
+    if ( id>=0 && selectedEvent!==id ) {
         $(".event"+id).css("background-color", "red");
-        $("#removeEvent").prop("disabled", "");
+        $("#removeEvent", parent.document).prop("disabled", "");
+        $("#editEvent", parent.document).prop("disabled", "");
+        highlightEvents(-1);
         selectedEvent = id;
     } else {
         selectedEvent = -1;
     }
+    console.log("select " + selectedEvent);
+    $("#selectedEventId", parent.document).prop("data-value", selectedEvent);
+    console.log($("#selectedEventId", parent.document).prop("data-value"));
 }
 
 var highlightedId = -1;
 
 function highlightEvents(id) {
     if ( highlightedId>=0 ) {
-        $(".eventOnCueList"+highlightedId).css("background-color", "");
-        $(".eventOnCueList"+highlightedId).css("color", "");
+        $(".eventOnCue"+highlightedId).css("background-color", "");
+        $("#schedule").contents().find(".eventOnCue"+highlightedId).css("background-color", "");
+        $("#schedule").contents().find(".eventOnCue"+highlightedId).css("color", "");
     }
     if ( highlightedId===id ) {
         highlightedId = -1;
     } else {
         highlightedId = id;
-        $(".eventOnCueList"+id).css("color","black");
-        $(".eventOnCueList"+id).css("background-color","yellow");
+        $(".eventOnCue"+highlightedId).css("background-color", "yellow");
+        $("#schedule").contents().find(".eventOnCue"+id).css("color","black");
+        $("#schedule").contents().find(".eventOnCue"+id).css("background-color","yellow");
     }
 }
+
+
+//////////
+// Time //
+//////////
 
 var offline = false;
 
@@ -67,6 +168,7 @@ function updateTime() {
         $("#timePanel").attr("class", "timePanel");
         $("#timePanel").html(response.substr(0,8));
         if ( offline ) {
+            timePaused = true;
             location.reload();
         }
     })
@@ -80,6 +182,11 @@ function updateTime() {
     });
 }
 
+
+//////////
+// Date //
+//////////
+
 function dateString(date) {
     return date.getFullYear() + "-" + ("0"+(date.getMonth()+1)).slice(-2) + "-" + ("0"+date.getDate()).slice(-2);
 }
@@ -90,7 +197,6 @@ function redirect(target) {
 
 function today() {
     mask(true);
-    console.log(dateString(new Date()))
     redirect("/?date="+dateString(new Date()));
 }
 
@@ -101,27 +207,20 @@ function moveDays(days) {
     redirect("/?date="+dateString(date));
 }
 
-function showCueListForm(number, name) {
+//////////
+// Cues //
+//////////
+
+function showCueForm(number, name) {
     mask(true);
-    $("#cueListForm").attr("class", "form shown cueList");
-    $("#cueListFormNumber").val(number);
-    $("#cueListFormName").val(name);
-    $("#cueListFormNumber").focus();
+    $("#cueForm").attr("class", "form shown cue");
+    $("#cueFormNumber").val(number);
+    $("#cueFormName").val(name);
+    $("#cueFormNumber").focus();
 }
 
-function showEventForm() {
-    mask(true);
-    $("#eventForm").attr("class", "form shown editEvent");
-    $("#eventCueList").val(highlightedId);
-}
-
-function hideEventForm() {
-    $("#eventForm").attr("class", "form editEvent");
-    mask(false);
-}
-
-function hideCueListForm() {
-    $("#cueListForm").attr("class", "form cueList");
+function hideCueForm() {
+    $("#cueForm").attr("class", "form cue");
     mask(false);
 }
 
@@ -140,7 +239,7 @@ function changeBrightness() {
 }
 
 function changeContrast() {
-    var val = $("#brightness").val();
+    var val = $("#contrast").val();
     var rq = $.post(url + "/control/contrast?value="+val)
     .done(function() {
     })

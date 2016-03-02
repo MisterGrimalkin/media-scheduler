@@ -2,9 +2,8 @@ package net.amarantha.mediascheduler;
 
 import com.google.inject.Inject;
 import net.amarantha.mediascheduler.exception.SchedulerException;
-import net.amarantha.mediascheduler.scheduler.CueList;
-import net.amarantha.mediascheduler.scheduler.MediaEvent;
 import net.amarantha.mediascheduler.scheduler.JsonEncoder;
+import net.amarantha.mediascheduler.scheduler.MediaEvent;
 import net.amarantha.mediascheduler.scheduler.Scheduler;
 import net.amarantha.mediascheduler.webservice.WebService;
 
@@ -23,7 +22,7 @@ public class Application {
         scheduler.startup();
         webService.startWebService();
 
-        testData();
+        //testData();
 
         System.out.println("Media Scheduler is online\nPress ENTER to quit...");
         Scanner sc = new Scanner(System.in);
@@ -40,9 +39,9 @@ public class Application {
     private void testData() {
         try {
 
-            int cueList1 = scheduler.addCueList(60, "Lucy In The Sky");
-            int cueList2 = scheduler.addCueList(64, "Fixing A Hole");
-            int cueList3 = scheduler.addCueList(67, "Taxman");
+            int cueList1 = 0;//scheduler.addCue(48, "Lucy In The Sky");
+            int cueList2 = 1;//scheduler.addCue(49, "Fixing A Hole");
+            int cueList3 = 2;//scheduler.addCue(50, "Taxman");
 
 
             scheduler.addEvent(new MediaEvent(cueList1,

@@ -1,17 +1,163 @@
+
 <!DOCTYPE html>
-<html lang="en">
-<head>
+
+<html>
+
+<head lang="en">
+
+    <title>Amarantha Media Scheduler</title>
+
     <meta charset="UTF-8">
-    <title>Title</title>
-    <style type="text/css" >
-        .one { width: 100px; height: 200px; background-color: blue; color: white; }
-        .one. two { width: 500px; height: 500px; color: white; }
-    </style>
+
+    <link rel="stylesheet" type="text/css" href="stylesheets/scheduler.css">
+
+    <script src="scheduler.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.0/jquery.min.js"></script>
+    <script src="//code.jquery.com/jquery-1.10.2.js"></script>
+    <script src="//code.jquery.com/ui/1.11.4/jquery-ui.js"></script>
+    <!--<script src="http://ajax.googleapis.com/ajax/libs/angularjs/1.4.8/angular.min.js"></script>-->
+
 </head>
-<body>
+<body onload="onLoad();">
 
-<div class="one two">FANNY SWEAT</div>
+<div id="mask" class="maskoff"></div>
 
+<div id="selectedEventId" data-value="-1" class="hidden"></div>
+
+<div id="timePanel" class="timePanel"></div>
+
+<div id="cueForm" class="form cue">
+
+    <form method="POST" action="actions/createCue.php">
+
+        <h3>Create Cue</h3>
+
+        <input id="cueFormHiddenDate" type="date" name="reloadDate" class="hidden" value="2016-03-02">
+
+        <p>
+        <div class="fieldLabel">Number</div>
+        <input id="cueFormNumber" type="text" name="cueNumber" class="field" style="width: 50px;">
+        </p>
+
+        <p>
+        <div class="fieldLabel">Name</div>
+        <input id="cueFormName" type="text" name="cueName"  class="field">
+        </p>
+
+        <p style="text-align: center">
+            <button type="button" onclick="hideCueForm();">Cancel</button>
+            <button type="submit">Create</button>
+        </p>
+
+    </form>
+
+</div><div id="eventForm" class="form editEvent">
+
+    <form method="POST" action="actions/createEvent.php">
+
+        <h3 id="eventFormHeader">Create Event</h3>
+
+        <input id="eventFormHiddenDate" type="date" name="reloadDate" class="hidden" value="2016-03-02">
+        <input id="eventHiddenId" type="number" name="id" class="hidden">
+
+        <p>
+        <div class="fieldLabel">Date</div>
+        <input id="eventFormDate" type="date" name="startDate" class="field" style="width: 210px;">
+        </p>
+
+        <p>
+        <div class="fieldLabel">Start</div>
+        <input id="eventFormStartTime" type="time" name="startTime"  class="field" style="width: 80px;">
+        <div class="fieldLabel">End</div>
+        <input id="eventFormEndTime" type="time" name="endTime"  class="field" style="width: 80px;">
+        </p>
+
+        <p>
+        <div class="fieldLabel">Cue</div>
+        <select id="eventCueId" class="field" name="cueId" style="width: 210px;">
+
+            <option value='0' class='field'>
+                Purple
+            </option>
+
+            <option value='1' class='field'>
+                Yellow
+            </option>
+
+            <option value='2' class='field'>
+                Trees
+            </option>
+
+            <option value='3' class='field'>
+                Green
+            </option>
+        </select>
+        </p>
+
+        <p style="text-align: center">
+            <button type="button" onclick="hideEventForm();">Cancel</button>
+            <button id="eventFormOK" type="submit">OK</button>
+        </p>
+
+    </form>
+
+</div>
+<script>
+url = 'http://192.168.0.70:8001/mediascheduler';
+</script>
+
+<div id="sideBar" class="cueMenu">
+    <nav>
+        <h3>Events</h3>
+
+        <button type='button' onclick='showEventForm();'>Add...</button><br><button id='editEvent' type='button' onclick='editEvent();' disabled>Edit</button><br><button id='removeEvent' type='button' onclick='removeEvent();' disabled>Remove</button>
+    </nav>
+    <div class="controlPanel">
+        <p>
+        <div class="fieldLabel">Brightness</div>
+        <input id="brightness" type="range" min="0" max="127"
+               value="95" onchange="changeBrightness();">
+        </p>
+        <p>
+        <div class="fieldLabel">Contrast</div>
+        <input id="contrast"   type="range" min="0" max="127"
+               value="27" onchange="changeContrast();">
+        </p>
+    </div>
+    <nav>
+        <h3>Cues</h3>
+
+        <button type='button' class='eventOnCue0' onclick='highlightEvents("0");'>1: Purple</button><br><button type='button' class='eventOnCue1' onclick='highlightEvents("1");'>2: Yellow</button><br><button type='button' class='eventOnCue2' onclick='highlightEvents("2");'>3: Trees</button><br><button type='button' class='eventOnCue3' onclick='highlightEvents("3");'>4: Green</button><br><br>
+        <button type='button' onclick='showCueForm();'>
+            Add...
+        </button>
+
+    </nav>
+</div>
+
+<div class="schedulePanel">
+    <h1>
+        March 2016</h1>
+
+    <div class = "dateControls">
+
+        <form target="/" method="GET">
+            <h2>
+                <button type="button" onclick="moveDays(-7);"><< WEEK</button>
+                <button type="button" onclick="moveDays(-1);">< DAY</button>
+                <button type="button" onclick="today();">TODAY</button>
+                <button type="button" onclick="moveDays(1);">> DAY</button>
+                <button type="button" onclick="moveDays(7);">>> WEEK</button>
+                <input id="searchDate" type="date" name="date" value="2016-03-02">
+                <button type="submit" target="_self">Go</button>
+            </h2>
+        </form>
+
+    </div>
+
+    <iframe id="schedule" width="1000" height="820" frameborder="0"></iframe>
+</div>
 
 </body>
+
 </html>

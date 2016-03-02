@@ -4,76 +4,112 @@ import com.google.inject.Inject;
 import com.google.inject.Singleton;
 import net.amarantha.mediascheduler.midi.Midi;
 import net.amarantha.mediascheduler.midi.MidiCommand;
-import net.amarantha.mediascheduler.scheduler.CueList;
+import net.amarantha.mediascheduler.scheduler.Cue;
+import net.amarantha.mediascheduler.utility.PropertyManager;
 
-import static javax.sound.midi.ShortMessage.*;
+import static javax.sound.midi.ShortMessage.CONTROL_CHANGE;
+import static javax.sound.midi.ShortMessage.NOTE_OFF;
+import static javax.sound.midi.ShortMessage.NOTE_ON;
 
 @Singleton
 public class ArKaos {
 
-    private CueList currentCueList;
+    private Cue currentCue;
 
-    @Inject
+    private int brightness;
+    private int contrast;
+
+    private int brightnessCC;
+    private int contrastCC;
+
+    private PropertyManager props;
     private Midi midi;
 
-    public ArKaos() {
+    @Inject
+    public ArKaos(PropertyManager props, Midi midi) {
+        this.props = props;
+        this.midi = midi;
+        brightness = props.getInt("brightness", 64);
+        contrast = props.getInt("contrast", 64);
+        brightnessCC = props.getInt("brightnessCC", 42);
+        contrastCC = props.getInt("contrastCC", 43);
     }
 
     public void startup() {
         midi.openDevice();
-        stopCueList();
+        stopAll();
+        brightnessCommand(brightness).send(midi);
+        contrastCommand(contrast).send(midi);
     }
 
     public void shutdown() {
-        stopCueList();
+        stopAll();
         midi.closeDevice();
+        props.setProperty("brightness", brightness);
+        props.setProperty("contrast", contrast);
     }
 
-    public void startCueList(CueList cueList) {
-        currentCueList = cueList;
-        cueListCommand(cueList).execute(midi);
+    public void startCueList(Cue cue) {
+        if ( currentCue !=null ) {
+            stopCueCommand(currentCue).send(midi);
+        }
+        currentCue = cue;
+        startCueCommand(cue).send(midi);
     }
 
-    public void stopCueList() {
-        currentCueList = null;
-        stopCommand().execute(midi);
+    public void stopAll() {
+        currentCue = null;
+        stopAllCommand().send(midi);
     }
 
-    public CueList getCurrentCueList() {
-        return currentCueList;
+    public Cue getCurrentCue() {
+        return currentCue;
     }
 
     public void setBrightness(int brightness) {
-        System.out.println("brightness="+brightness);
-        brightnessCommand(brightness).execute(midi);
+        this.brightness = brightness;
+        brightnessCommand(brightness).send(midi);
     }
 
     public void setContrast(int contrast) {
-        contrastCommand(contrast).execute(midi);
+        this.contrast = contrast;
+        contrastCommand(contrast).send(midi);
     }
 
-    //////////////
+    public int getBrightness() {
+        return brightness;
+    }
+
+    public int getContrast() {
+        return contrast;
+    }
+
+//////////////
     // Commands //
     //////////////
 
-    public MidiCommand cueListCommand(CueList cueList) {
-        return new MidiCommand(NOTE_ON, 1, cueList.getNumber(), 100);
-    }
-
     public MidiCommand brightnessCommand(int brightness) {
-        return new MidiCommand(NOTE_ON, 1, brightness, 120);
+        return new MidiCommand(CONTROL_CHANGE, 1, brightnessCC, brightness);
     }
 
     public MidiCommand contrastCommand(int contrast) {
-        return new MidiCommand(NOTE_OFF, 1, contrast, 60);
+        return new MidiCommand(CONTROL_CHANGE, 1, contrastCC, contrast);
     }
 
-    public MidiCommand stopCommand() {
+    public MidiCommand startCueCommand(Cue cue) {
+        return new MidiCommand(CONTROL_CHANGE, 1, cue.getNumber(), 127);
+    }
+
+    public MidiCommand stopCueCommand(Cue cue) {
+        return new MidiCommand(CONTROL_CHANGE, 1, cue.getNumber(), 0);
+    }
+
+    public MidiCommand stopAllCommand() {
         return new MidiCommand() {
             @Override
-            public void execute(Midi midi) {
-                for (int n = 0; n < 128; n++) {
-                    midi.send(NOTE_OFF, 1, n, 0);
+            public void send(Midi midi) {
+                for (int n = 1; n < 11; n++) {
+                    midi.send(CONTROL_CHANGE, 1, n, 0);
                 }
             }
         };

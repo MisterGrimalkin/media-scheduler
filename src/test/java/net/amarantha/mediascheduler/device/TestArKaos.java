@@ -6,16 +6,15 @@ import com.googlecode.guicebehave.Modules;
 import com.googlecode.guicebehave.Story;
 import com.googlecode.guicebehave.StoryRunner;
 import net.amarantha.mediascheduler.TestModule;
-import net.amarantha.mediascheduler.scheduler.CueList;
 import net.amarantha.mediascheduler.midi.Midi;
 import net.amarantha.mediascheduler.midi.MidiCommand;
 import net.amarantha.mediascheduler.midi.MidiMock;
+import net.amarantha.mediascheduler.scheduler.Cue;
 import org.junit.runner.RunWith;
 
 import static net.amarantha.mediascheduler.device.ArKaosMidiCommand.BRIGHTNESS;
 import static net.amarantha.mediascheduler.device.ArKaosMidiCommand.CONTRAST;
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
 
 @RunWith(StoryRunner.class) @Modules(TestModule.class)
 public class TestArKaos {
@@ -56,8 +55,8 @@ public class TestArKaos {
         mediaServer.shutdown();
     }
 
-    void when_trigger_cue_list_$1(CueList cueList) {
-        mediaServer.startCueList(cueList);
+    void when_trigger_cue_list_$1(Cue cue) {
+        mediaServer.startCueList(cue);
     }
 
     void when_set_brightness_$1(int brightness) {

@@ -42,6 +42,10 @@ public class PropertyManager {
         }
     }
 
+    public void setProperty(String propName, int value) {
+        setProperty(propName, ""+value);
+    }
+
     public void setProperty(String propName, String value) {
         props.setProperty(propName, value);
         saveProperties();

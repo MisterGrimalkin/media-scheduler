@@ -8,6 +8,10 @@ public class Resource {
         return ok("OK");
     }
 
+    public Response ok(int entity) {
+        return ok(""+entity);
+    }
+
     public Response ok(String entity) {
         return Response.ok()
                 .header("Access-Control-Allow-Origin", "*")

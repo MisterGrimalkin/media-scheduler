@@ -1,52 +1,43 @@
 <div id="eventForm" class="form editEvent">
 
-    <form method="POST" action="actions/createevent.php">
+    <form method="POST" action="actions/createEvent.php">
 
-        <h3>Create Event</h3>
+        <h3 id="eventFormHeader">Create Event</h3>
+
+        <input id="eventFormHiddenDate" type="date" name="reloadDate" class="hidden" value="<?php echo $date; ?>">
+        <input id="eventHiddenId" type="number" name="id" class="hidden">
 
         <p>
             <div class="fieldLabel">Date</div>
-            <input id="eventFormDate" type="date" name="startDate" class="field">
+            <input id="eventFormDate" type="date" name="startDate" class="field" style="width: 210px;">
         </p>
 
         <p>
             <div class="fieldLabel">Start</div>
-            <input id="eventFormStartTime" type="time" name="startTime"  class="field" style="width: 70px;">
-        </p>
-
-        <p>
+            <input id="eventFormStartTime" type="time" name="startTime"  class="field" style="width: 80px;">
             <div class="fieldLabel">End</div>
-            <input id="eventFormEndTime" type="time" name="endTime"  class="field" style="width: 70px;">
+            <input id="eventFormEndTime" type="time" name="endTime"  class="field" style="width: 80px;">
         </p>
 
         <p>
-        <div class="fieldLabel">Cue List</div>
-            <select id="eventCueList" class="field" name="cueList">
+        <div class="fieldLabel">Cue</div>
+            <select id="eventCueId" class="field" name="cueId" style="width: 210px;">
                 <?php
-                    $c = curl_init();
-                    curl_setopt($c, CURLOPT_URL, "http://192.168.0.70:8001/mediascheduler/schedule/cuelist");
-                    curl_setopt($c, CURLOPT_RETURNTRANSFER, 1);
-
-                    $output = curl_exec($c);
-
-                    if ( $output !== false ) {
-                        $cuelists = json_decode($output, true);
-                        if ( count($cuelists)>0 ) {
-                            foreach ( $cuelists as $cuelist ) {
-                                $id = $cuelist["id"];
-                                $name = $cuelist["name"];
-                                echo wrap("option", ["value"=>$id,"class"=>"field"],$name);
-                            }
+                    $cues = getCues();
+                    if ( count($cues)>0 ) {
+                        foreach ( $cues as $cue ) {
+                            $id = $cue["id"];
+                            $name = $cue["name"];
+                            echo wrap("option", ["value"=>$id,"class"=>"field"],$name);
                         }
                     }
-                    curl_close($c);
                 ?>
             </select>
         </p>
 
         <p style="text-align: center">
             <button type="button" onclick="hideEventForm();">Cancel</button>
-            <button type="submit">Create</button>
+            <button id="eventFormOK" type="submit">OK</button>
         </p>
 
     </form>

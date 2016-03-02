@@ -4,10 +4,7 @@ import com.google.inject.Inject;
 import com.google.inject.Singleton;
 import net.amarantha.mediascheduler.device.ArKaos;
 import net.amarantha.mediascheduler.device.Projector;
-import net.amarantha.mediascheduler.exception.CueListInUseException;
-import net.amarantha.mediascheduler.exception.CueListNotFoundException;
-import net.amarantha.mediascheduler.exception.PriorityOutOfBoundsException;
-import net.amarantha.mediascheduler.exception.ScheduleConflictException;
+import net.amarantha.mediascheduler.exception.*;
 import net.amarantha.mediascheduler.utility.Now;
 
 import java.util.*;
@@ -18,59 +15,94 @@ public class Scheduler {
 
     @Inject private ArKaos mediaServer;
     @Inject private Projector projector;
+    @Inject private JsonEncoder json;
 
     @Inject private Now now;
 
     public Scheduler() {}
 
-    ///////////////
-    // Cue Lists //
-    ///////////////
+    //////////
+    // Cues //
+    //////////
 
-    private Set<CueList> cueLists = new HashSet<>();
+    private Set<Cue> cues = new HashSet<>();
 
-    public static int nextCueListId = 0;
+    private static final String CUES_FILE = "cues.json";
 
-    public int addCueList(Integer number, String name) {
-        return addCueList(new CueList(nextCueListId++, number, name));
+    private void loadCues() {
+        cues = json.decodeCuesFromFile(CUES_FILE);
+        for ( Cue cue : cues ) {
+            nextCueId = Math.max(cue.getId()+1, nextCueId);
+        }
     }
 
-    public int addCueList(CueList cueList) {
-        cueLists.add(cueList);
-        return cueList.getId();
+    public void saveCues() {
+        json.encodeCuesToFile(CUES_FILE);
     }
 
-    public Set<CueList> getCueLists() {
-        return cueLists;
+    public Set<Cue> getCues() {
+        return cues;
     }
 
-    public CueList getCueList(int id) {
-        for ( CueList cueList : cueLists ) {
-            if ( cueList.getId()==id ) {
-                return cueList;
+    public Cue getCue(int id) {
+        for ( Cue cue : cues) {
+            if ( cue.getId()==id ) {
+                return cue;
             }
         }
         return null;
     }
 
+    public int addCue(Integer number, String name) {
+        try {
+            return addCue(new Cue(nextCueId++, number, name));
+        } catch (DuplicateCueException ignored) {}
+        return -1;
+    }
 
-    public void removeCueList(CueList cueList) throws CueListInUseException {
-        List<MediaEvent> events = getEventsByCueList(cueList);
-        if ( events.isEmpty() ) {
-            cueLists.remove(cueList);
-        } else {
-            throw new CueListInUseException("CueList " + cueList + " is used by " + events.size() + " events");
+    public int addCue(Cue cue) throws DuplicateCueException {
+        if ( getCue(cue.getId())!=null ) {
+            throw new DuplicateCueException();
         }
+        cues.add(cue);
+        saveCues();
+        return cue.getId();
     }
 
-    void clearCueLists() {
-        cueLists.clear();
+    public void removeCue(int id) throws CueInUseException {
+        removeCue(getCue(id));
     }
+
+    public void removeCue(Cue cue) throws CueInUseException {
+        List<MediaEvent> events = getEventsByCue(cue);
+        if ( events.isEmpty() ) {
+            cues.remove(cue);
+        } else {
+            throw new CueInUseException("Cue " + cue + " is used by " + events.size() + " events");
+        }
+        saveCues();
+    }
+
+    void clearCues() {
+        cues.clear();
+        saveCues();
+    }
+
+    public static int nextCueId = 1;
+    public static int nextEventId = 1;
 
 
     ///////////////
     // Schedules //
     ///////////////
+
+    public void loadSchedules() {
+
+    }
+
+    public void saveSchedules() {
+
+    }
 
     private Map<Integer, Schedule> schedules = new LinkedHashMap<>();
 
@@ -106,17 +138,17 @@ public class Scheduler {
         return null;
     }
 
-    public MediaEvent addEvent(MediaEvent event) throws ScheduleConflictException, CueListNotFoundException {
+    public MediaEvent addEvent(MediaEvent event) throws ScheduleConflictException, CueNotFoundException {
         try {
             return addEvent(1, event);
         } catch (PriorityOutOfBoundsException ignored) {}
         return null;
     }
 
-    public MediaEvent addEvent(int priority, MediaEvent event) throws PriorityOutOfBoundsException, ScheduleConflictException, CueListNotFoundException {
-        CueList cueList = getCueList(event.getCueListId());
-        if ( cueList==null ) {
-            throw new CueListNotFoundException("Cue List " + event.getCueListId() + " not found");
+    public MediaEvent addEvent(int priority, MediaEvent event) throws PriorityOutOfBoundsException, ScheduleConflictException, CueNotFoundException {
+        Cue cue = getCue(event.getCueId());
+        if ( cue ==null ) {
+            throw new CueNotFoundException("Cue List " + event.getCueId() + " not found");
         }
         Schedule schedule = schedules.get(priority);
         if ( schedule==null ) {
@@ -146,16 +178,16 @@ public class Scheduler {
         return null;
     }
 
-    public List<MediaEvent> getEventsByCueList(CueList cueList) {
+    public List<MediaEvent> getEventsByCue(Cue cue) {
         List<MediaEvent> result = new ArrayList<>();
         for ( Entry<Integer, Schedule> entry : schedules.entrySet() ) {
             Schedule schedule = entry.getValue();
-            result.addAll(schedule.getEventsByCueList(cueList));
+            result.addAll(schedule.getEventsByCueList(cue));
         }
         return result;
     }
 
-    public MediaEvent switchPriority(long eventId, int priority) throws PriorityOutOfBoundsException, ScheduleConflictException, CueListNotFoundException {
+    public MediaEvent switchPriority(long eventId, int priority) throws PriorityOutOfBoundsException, ScheduleConflictException, CueNotFoundException {
         for ( Entry<Integer, Schedule> entry : schedules.entrySet() ) {
             Schedule oldSchedule = entry.getValue();
             MediaEvent event = oldSchedule.getEventById(eventId);
@@ -180,6 +212,7 @@ public class Scheduler {
     public void startup() {
         mediaServer.startup();
         projector.switchOn(true);
+        loadCues();
         startSchedulerLoop();
     }
 
@@ -201,15 +234,15 @@ public class Scheduler {
 
     void checkSchedule() {
         MediaEvent currentEvent = getCurrentEvent();
-        CueList nextCueList = ( currentEvent==null ? null : getCueList(currentEvent.getCueListId()) );
-        CueList currentCueList = mediaServer.getCurrentCueList();
-        if ( nextCueList==null ) {
-            if ( currentCueList!=null ) {
-                mediaServer.stopCueList();
+        Cue nextCue = ( currentEvent==null ? null : getCue(currentEvent.getCueId()) );
+        Cue currentCue = mediaServer.getCurrentCue();
+        if ( nextCue ==null ) {
+            if ( currentCue !=null ) {
+                mediaServer.stopAll();
             }
         } else {
-            if ( !nextCueList.equals(currentCueList) ) {
-                mediaServer.startCueList(getCueList(currentEvent.getCueListId()));
+            if ( !nextCue.equals(currentCue) ) {
+                mediaServer.startCueList(getCue(currentEvent.getCueId()));
             }
         }
     }

@@ -18,7 +18,7 @@ public class MediaEvent implements Comparable<MediaEvent> {
 
     private long id;
 
-    private int cueListId;
+    private int cueId;
 
     private LocalDate startDate;
     private LocalTime startTime;
@@ -30,23 +30,23 @@ public class MediaEvent implements Comparable<MediaEvent> {
 
     @JsonCreator
     public MediaEvent(
-            @JsonProperty("cueListId") int cueListId,
+            @JsonProperty("cueId") int cueId,
             @JsonProperty("startDate") String startDateStr,
             @JsonProperty("startTime") String startTimeStr,
             @JsonProperty("endTime") String endTimeStr,
             @JsonProperty("repeatOn") DayOfWeek... repeats) throws IllegalArgumentException {
-        this(nextId, cueListId, startDateStr, startTimeStr, endTimeStr, repeats);
+        this(nextId, cueId, startDateStr, startTimeStr, endTimeStr, repeats);
         nextId++;
     }
 
-    public MediaEvent(int id, int cueListId, String startDateStr, String startTimeStr, String endTimeStr, DayOfWeek... repeats) throws IllegalArgumentException {
+    public MediaEvent(int id, int cueId, String startDateStr, String startTimeStr, String endTimeStr, DayOfWeek... repeats) throws IllegalArgumentException {
         startTime = LocalTime.parse(startTimeStr);
         endTime  = LocalTime.parse(endTimeStr);
         if ( startTime.isAfter(endTime) ) {
             throw new IllegalArgumentException("End Time must be after Start Time");
         }
         this.id = id;
-        this.cueListId = cueListId;
+        this.cueId = cueId;
         startDate = LocalDate.parse(startDateStr);
         repeatOn.addAll(Arrays.asList(repeats));
     }
@@ -60,8 +60,8 @@ public class MediaEvent implements Comparable<MediaEvent> {
         return id;
     }
 
-    public int getCueListId() {
-        return cueListId;
+    public int getCueId() {
+        return cueId;
     }
 
     @JsonIgnore
@@ -112,7 +112,7 @@ public class MediaEvent implements Comparable<MediaEvent> {
     }
 
     public void setCueList(int cueListId) {
-        this.cueListId = cueListId;
+        this.cueId = cueListId;
     }
 
     public void setStartDate(LocalDate startDate) {

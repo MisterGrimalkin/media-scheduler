@@ -11,12 +11,12 @@ public class MidiCommand {
 
     public MidiCommand(int command, int channel, int data1, int data2) {
         this.command = command;
-        this.channel = channel;
+        this.channel = channel-1;
         this.data1 = data1;
         this.data2 = data2;
     }
 
-    public void execute(Midi midi) {
+    public void send(Midi midi) {
         midi.send(command, channel, data1, data2);
     }
 

@@ -15,8 +15,9 @@ public class WebService {
 
     private HttpServer server;
 
-    @Inject private ScheduleResource scheduleResource;
     @Inject private ControlResource controlResource;
+    @Inject private CueResource cueResource;
+    @Inject private ScheduleResource scheduleResource;
 
     @Inject private PropertyManager props;
 
@@ -27,7 +28,7 @@ public class WebService {
         String fullUri = "http://"+props.getString("ip","127.0.0.1")+":8001/mediascheduler/";
 
         ResourceConfig rc = new ResourceConfig().packages("net.amarantha.mediascheduler.webservice");
-        rc.register(LoggingFilter.class);
+//        rc.register(LoggingFilter.class);
 
         server = GrizzlyHttpServerFactory.createHttpServer(URI.create(fullUri), rc);
 

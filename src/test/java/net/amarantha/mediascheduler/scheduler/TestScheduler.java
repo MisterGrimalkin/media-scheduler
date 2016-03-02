@@ -35,20 +35,25 @@ public class TestScheduler {
     @Inject private Midi midi;
     @Inject private Projector projector;
 
-    private static final CueList CUE_LIST_FAIL = new CueList(0, 0, "This Will Fail");
-    private static final CueList CUE_LIST_1 = new CueList(1, 1, "Dragons");
-    private static final CueList CUE_LIST_2 = new CueList(2, 2, "Polar Bears");
-    private static final CueList CUE_LIST_3 = new CueList(3, 3, "Skinny Dips");
-    private static final CueList CUE_LIST_4 = new CueList(4, 4, "Does Not Exist");
+    private static final Cue CUE_LIST_FAIL = new Cue(0, 0, "This Will Fail");
+    private static final Cue CUE_LIST_DUPLICATE = new Cue(1, 99, "Duplicate");
+    private static final Cue CUE_LIST_1 = new Cue(1, 1, "Dragons");
+    private static final Cue CUE_LIST_2 = new Cue(2, 2, "Polar Bears");
+    private static final Cue CUE_LIST_3 = new Cue(3, 3, "Skinny Dips");
+    private static final Cue CUE_LIST_4 = new Cue(4, 4, "Does Not Exist");
 
     @Story
     public void testCueLists() {
 
         then_there_are_$1_cuelists(4);
 
-        when_add_priority_$1_event_$2_on_$3_from_$4_to_$5(1, CUE_LIST_4, "2016-03-02", "10:00", "11:00", CueListNotFoundException.class);
+        when_add_cuelist_$1(CUE_LIST_DUPLICATE, true);
 
-        when_add_cuelist_$1(CUE_LIST_4);
+        then_there_are_$1_cuelists(4);
+
+        when_add_priority_$1_event_$2_on_$3_from_$4_to_$5(1, CUE_LIST_4, "2016-03-02", "10:00", "11:00", CueNotFoundException.class);
+
+        when_add_cuelist_$1(CUE_LIST_4, false);
         then_there_are_$1_cuelists(5);
 
         Long id =
@@ -317,17 +322,17 @@ public class TestScheduler {
     }
 
     void when_start_scheduler() {
-        scheduler.clearCueLists();
+        scheduler.clearCues();
         scheduler.clearSchedules();
         scheduler.startup();
         scheduler.pause(true);      // We will manually "tick" the scheduler
     }
 
     void when_setup_cuelists() {
-        when_add_cuelist_$1(CUE_LIST_FAIL);
-        when_add_cuelist_$1(CUE_LIST_1);
-        when_add_cuelist_$1(CUE_LIST_2);
-        when_add_cuelist_$1(CUE_LIST_3);
+        when_add_cuelist_$1(CUE_LIST_FAIL, false);
+        when_add_cuelist_$1(CUE_LIST_1, false);
+        when_add_cuelist_$1(CUE_LIST_2, false);
+        when_add_cuelist_$1(CUE_LIST_3, false);
         then_there_are_$1_cuelists(4);
     }
 
@@ -366,13 +371,9 @@ public class TestScheduler {
         scheduler.checkSchedule();
     }
 
-    void when_add_cuelist_$1(CueList cueList) {
-        scheduler.addCueList(cueList);
-    }
-
-    void when_remove_cuelist_$1(CueList cueList, boolean expectFail) {
+    void when_add_cuelist_$1(Cue cue, boolean expectFail) {
         try {
-            scheduler.removeCueList(cueList);
+            scheduler.addCue(cue);
             if ( expectFail ) {
                 fail("Expected an exception");
             }
@@ -380,20 +381,34 @@ public class TestScheduler {
             if ( !expectFail ) {
                 fail("Did not expect an exception: " + e.getMessage());
             }
-            then_exception_thrown(CueListInUseException.class, e.getClass());
+            then_exception_thrown(DuplicateCueException.class, e.getClass());
         }
     }
 
-    private Long when_add_priority_$1_event_$2_on_$3_from_$4_to_$5(int priority, CueList cueList, String date, String start, String end, DayOfWeek... repeats) {
-        return when_add_priority_$1_event_$2_on_$3_from_$4_to_$5(priority, cueList, date, start, end, null, repeats);
+    void when_remove_cuelist_$1(Cue cue, boolean expectFail) {
+        try {
+            scheduler.removeCue(cue);
+            if ( expectFail ) {
+                fail("Expected an exception");
+            }
+        } catch (Exception e) {
+            if ( !expectFail ) {
+                fail("Did not expect an exception: " + e.getMessage());
+            }
+            then_exception_thrown(CueInUseException.class, e.getClass());
+        }
     }
 
-    Long when_add_priority_$1_event_$2_on_$3_from_$4_to_$5(int priority, CueList cueList, String date, String start, String end, Class<? extends Exception> expectedExceptionClass, DayOfWeek... repeats) {
+    private Long when_add_priority_$1_event_$2_on_$3_from_$4_to_$5(int priority, Cue cue, String date, String start, String end, DayOfWeek... repeats) {
+        return when_add_priority_$1_event_$2_on_$3_from_$4_to_$5(priority, cue, date, start, end, null, repeats);
+    }
+
+    Long when_add_priority_$1_event_$2_on_$3_from_$4_to_$5(int priority, Cue cue, String date, String start, String end, Class<? extends Exception> expectedExceptionClass, DayOfWeek... repeats) {
         Long result = null;
         try {
             result = priority==1
-                    ? scheduler.addEvent(new MediaEvent(nextEventId++, cueList.getId(), date, start, end, repeats)).getId()
-                    : scheduler.addEvent(priority, new MediaEvent(nextEventId++, cueList.getId(), date, start, end, repeats)).getId()
+                    ? scheduler.addEvent(new MediaEvent(nextEventId++, cue.getId(), date, start, end, repeats)).getId()
+                    : scheduler.addEvent(priority, new MediaEvent(nextEventId++, cue.getId(), date, start, end, repeats)).getId()
             ;
             if ( expectedExceptionClass!=null ) {
                 fail("Expected an exception");
@@ -437,7 +452,7 @@ public class TestScheduler {
     //////////
 
     void then_there_are_$1_cuelists(int count) {
-        assertEquals(count, scheduler.getCueLists().size());
+        assertEquals(count, scheduler.getCues().size());
     }
 
     void then_there_are_$1_events_today(int count) {
@@ -473,17 +488,17 @@ public class TestScheduler {
         }
     }
 
-    void then_event_$1_is_$2(long eventId, CueList cueList) {
+    void then_event_$1_is_$2(long eventId, Cue cue) {
         MediaEvent actualEvent = scheduler.getEventById(eventId);
-        assertEquals(cueList.getId(), actualEvent.getCueListId());
+        assertEquals(cue.getId(), actualEvent.getCueId());
     }
 
-    void then_current_cuelist_is_$1(CueList cueList) {
+    void then_current_cuelist_is_$1(Cue cue) {
         MediaEvent currentEvent = scheduler.getCurrentEvent();
         if ( currentEvent==null ) {
-            assertNull(cueList);
+            assertNull(cue);
         } else {
-            assertEquals(cueList.getId(), currentEvent.getCueListId());
+            assertEquals(cue.getId(), currentEvent.getCueId());
         }
     }
 
