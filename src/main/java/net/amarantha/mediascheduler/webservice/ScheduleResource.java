@@ -1,8 +1,7 @@
 package net.amarantha.mediascheduler.webservice;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.google.inject.Inject;
-import net.amarantha.mediascheduler.exception.CueNotFoundException;
-import net.amarantha.mediascheduler.exception.ScheduleConflictException;
 import net.amarantha.mediascheduler.scheduler.JsonEncoder;
 import net.amarantha.mediascheduler.scheduler.MediaEvent;
 import net.amarantha.mediascheduler.scheduler.Scheduler;
@@ -11,6 +10,7 @@ import net.amarantha.mediascheduler.utility.Now;
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+import java.io.IOException;
 import java.time.LocalDate;
 
 @Path("schedule")
@@ -58,9 +58,10 @@ public class ScheduleResource extends Resource {
     public Response getEvent(@QueryParam("id") int id) {
         MediaEvent event = scheduler.getEventById(id);
         if ( event!=null ) {
-            String j = json.encodeMediaEvent(event);
-            if ( j!=null ) {
-                return ok(j);
+            try {
+                return ok(json.encodeMediaEvent(event));
+            } catch (JsonProcessingException e) {
+                return error(e.getMessage());
             }
         }
         return error("Event not found");
@@ -69,8 +70,8 @@ public class ScheduleResource extends Resource {
     @POST
     @Path("add")
     public Response createEvent(String content) {
-        MediaEvent event = json.decodeMediaEvent(content);
         try {
+            MediaEvent event = json.decodeMediaEvent(content);
             scheduler.addEvent(event);
         } catch (Exception e) {
             return error(e.getMessage());
@@ -81,21 +82,27 @@ public class ScheduleResource extends Resource {
     @POST
     @Path("update")
     public Response updateEvent(String content) {
-        MediaEvent event = json.decodeMediaEvent(content);
-        MediaEvent existing = scheduler.getEventById(event.getId());
+        MediaEvent newEvent;
+        try {
+            newEvent = json.decodeMediaEvent(content);
+        } catch (IOException e) {
+            return error(e.getMessage());
+        }
+        MediaEvent existing = scheduler.getEventById(newEvent.getId());
         if ( existing == null ) {
             return error("Event not found");
         }
         scheduler.removeEvent(existing.getId());
         try {
-            scheduler.addEvent(event);
+            scheduler.addEvent(newEvent);
         } catch (Exception e) {
+            String msg = e.getMessage();
             try {
                 scheduler.addEvent(existing);
             } catch (Exception e1) {
-                e1.printStackTrace();
+                msg += " " + e1.getMessage();
             }
-            return error(e.getMessage());
+            return error(msg);
         }
         return ok("Event created");
     }

@@ -7,9 +7,7 @@ import net.amarantha.mediascheduler.midi.MidiCommand;
 import net.amarantha.mediascheduler.scheduler.Cue;
 import net.amarantha.mediascheduler.utility.PropertyManager;
 
-import static javax.sound.midi.ShortMessage.CONTROL_CHANGE;
-import static javax.sound.midi.ShortMessage.NOTE_OFF;
-import static javax.sound.midi.ShortMessage.NOTE_ON;
+import static javax.sound.midi.ShortMessage.*;
 
 @Singleton
 public class ArKaos {

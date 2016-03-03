@@ -2,7 +2,6 @@ package net.amarantha.mediascheduler.webservice;
 
 import com.google.inject.Inject;
 import net.amarantha.mediascheduler.device.ArKaos;
-import net.amarantha.mediascheduler.scheduler.Schedule;
 import net.amarantha.mediascheduler.scheduler.Scheduler;
 
 import javax.ws.rs.GET;

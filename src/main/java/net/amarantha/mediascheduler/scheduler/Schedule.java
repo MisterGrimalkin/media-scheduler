@@ -27,7 +27,7 @@ public class Schedule {
     ////////////////
 
     List<MediaEvent> getUniqueEvents() {
-        Set<Long> ids = new HashSet<>();
+        Set<Integer> ids = new HashSet<>();
         List<MediaEvent> result = new ArrayList<>();
         for ( Entry<DayOfWeek, Map<LocalDate, List<MediaEvent>>> dowEntry : allEvents.entrySet() ) {
             for ( Entry<LocalDate, List<MediaEvent>> dateEntry : dowEntry.getValue().entrySet() ) {

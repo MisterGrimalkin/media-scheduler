@@ -44,7 +44,7 @@ public class Scheduler {
         return cues;
     }
 
-    public Cue getCue(int id) {
+    public Cue getCue(long id) {
         for ( Cue cue : cues) {
             if ( cue.getId()==id ) {
                 return cue;
@@ -53,16 +53,19 @@ public class Scheduler {
         return null;
     }
 
-    public int addCue(Integer number, String name) {
+    public long addCue(Integer number, String name) {
         try {
             return addCue(new Cue(nextCueId++, number, name));
         } catch (DuplicateCueException ignored) {}
         return -1;
     }
 
-    public int addCue(Cue cue) throws DuplicateCueException {
+    public long addCue(Cue cue) throws DuplicateCueException {
         if ( getCue(cue.getId())!=null ) {
             throw new DuplicateCueException();
+        }
+        if ( cue.getId()>=nextCueId ) {
+            nextCueId = cue.getId()+1;
         }
         cues.add(cue);
         saveCues();
@@ -96,12 +99,14 @@ public class Scheduler {
     // Schedules //
     ///////////////
 
-    public void loadSchedules() {
+    private static final String SCHEDULES_FILENAME = "schedules.json";
 
+    public void loadSchedules() {
+        schedules = json.decodeSchedulesFromFile(SCHEDULES_FILENAME);
     }
 
     public void saveSchedules() {
-
+        json.encodeAllSchedulesToFile(SCHEDULES_FILENAME);
     }
 
     private Map<Integer, Schedule> schedules = new LinkedHashMap<>();
@@ -155,6 +160,10 @@ public class Scheduler {
             schedule = createSchedule(priority);
         }
         schedule.addEvent(event);
+        if ( event.getId()>=nextEventId ) {
+            nextEventId = event.getId()+1;
+        }
+        saveSchedules();
         checkSchedule();
         return event;
     }
@@ -164,6 +173,7 @@ public class Scheduler {
         for ( Entry<Integer, Schedule> entry : schedules.entrySet() ) {
             removed |= entry.getValue().removeEvent(eventId);
         }
+        saveSchedules();
         checkSchedule();
         return removed;
     }
@@ -194,6 +204,7 @@ public class Scheduler {
             if ( event!=null ) {
                 addEvent(priority, event);
                 oldSchedule.removeEvent(event.getId());
+                saveSchedules();
                 checkSchedule();
                 return event;
             }
@@ -213,6 +224,7 @@ public class Scheduler {
         mediaServer.startup();
         projector.switchOn(true);
         loadCues();
+        loadSchedules();
         startSchedulerLoop();
     }
 

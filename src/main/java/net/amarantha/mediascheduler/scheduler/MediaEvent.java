@@ -14,9 +14,7 @@ import java.util.Set;
 
 public class MediaEvent implements Comparable<MediaEvent> {
 
-    static int nextId = 0;
-
-    private long id;
+    private int id;
 
     private int cueId;
 
@@ -35,12 +33,14 @@ public class MediaEvent implements Comparable<MediaEvent> {
             @JsonProperty("startTime") String startTimeStr,
             @JsonProperty("endTime") String endTimeStr,
             @JsonProperty("repeatOn") DayOfWeek... repeats) throws IllegalArgumentException {
-        this(nextId, cueId, startDateStr, startTimeStr, endTimeStr, repeats);
-        nextId++;
+        this(Scheduler.nextEventId++, cueId, startDateStr, startTimeStr, endTimeStr, repeats);
     }
 
     public MediaEvent(int id, int cueId, String startDateStr, String startTimeStr, String endTimeStr, DayOfWeek... repeats) throws IllegalArgumentException {
         startTime = LocalTime.parse(startTimeStr);
+        if ( endTimeStr.equals("00:00") ) {
+            endTimeStr = "23:59";
+        }
         endTime  = LocalTime.parse(endTimeStr);
         if ( startTime.isAfter(endTime) ) {
             throw new IllegalArgumentException("End Time must be after Start Time");
@@ -56,7 +56,7 @@ public class MediaEvent implements Comparable<MediaEvent> {
     // Getters //
     /////////////
 
-    public long getId() {
+    public int getId() {
         return id;
     }
 
@@ -107,7 +107,7 @@ public class MediaEvent implements Comparable<MediaEvent> {
     // Setters //
     /////////////
 
-    public void setId(long id) {
+    public void setId(int id) {
         this.id = id;
     }
 

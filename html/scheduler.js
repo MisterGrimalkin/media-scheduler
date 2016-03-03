@@ -60,13 +60,13 @@ function hideEventForm() {
 
 var selectedEvent = -1;
 
-
-function editEvents() {
-    window.alert("cunts are nice");
+function addEvent() {
+    selectEvent(-1);
+    $("#schedule").contents().find(".event").css("background-color", "");
+    showEventForm();
 }
 
 function editSelectedEvent() {
-    console.log("eidt");
     editEvent($("#selectedEventId").prop("data-value"), url+"/schedule/event");
 }
 

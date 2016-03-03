@@ -56,7 +56,7 @@ public class TestScheduler {
         when_add_cuelist_$1(CUE_LIST_4, false);
         then_there_are_$1_cuelists(5);
 
-        Long id =
+        Integer id =
         when_add_priority_$1_event_$2_on_$3_from_$4_to_$5(1, CUE_LIST_4, "2016-03-02", "10:00", "11:00");
 
         when_remove_cuelist_$1(CUE_LIST_4, true);
@@ -77,7 +77,7 @@ public class TestScheduler {
 
         when_add_priority_$1_event_$2_on_$3_from_$4_to_$5(1, CUE_LIST_1, "2016-03-02", "10:00", "11:00");
         when_add_priority_$1_event_$2_on_$3_from_$4_to_$5(1, CUE_LIST_2, "2016-03-02", "12:00", "14:00");
-            Long id3 =
+        Integer id3 =
         when_add_priority_$1_event_$2_on_$3_from_$4_to_$5(1, CUE_LIST_3, "2016-03-04", "14:00", "18:00");
 
         then_event_$1_exists_$2(id3, true);
@@ -161,7 +161,7 @@ public class TestScheduler {
         then_current_cuelist_is_$1(CUE_LIST_2);
         then_last_command_was_$1_value_$2(ArKaosMidiCommand.CUE_LIST, CUE_LIST_2.getNumber());
 
-        Long id =
+        Integer id =
         when_add_priority_$1_event_$2_on_$3_from_$4_to_$5(3, CUE_LIST_3, "2016-03-03", "11:00", "13:00");
 
         then_there_are_$1_events_today(3);
@@ -207,7 +207,7 @@ public class TestScheduler {
 
         // No conflicts
 
-        Long id = when_add_priority_$1_event_$2_on_$3_from_$4_to_$5(1, CUE_LIST_3, date, "09:00", "10:00");
+        Integer id = when_add_priority_$1_event_$2_on_$3_from_$4_to_$5(1, CUE_LIST_3, date, "09:00", "10:00");
         then_there_are_$1_events_today(3);
         when_remove_event_$1(id);
         then_there_are_$1_events_today(2);
@@ -293,18 +293,12 @@ public class TestScheduler {
     }
 
     @Story
-    public void testPersistence() {
-
-        when_add_priority_$1_event_$2_on_$3_from_$4_to_$5(1, CUE_LIST_1, "2016-03-14", "10:00", "12:00", MONDAY, TUESDAY);
-        when_add_priority_$1_event_$2_on_$3_from_$4_to_$5(1, CUE_LIST_2, "2016-03-14", "12:00", "14:00", MONDAY, WEDNESDAY);
-        when_add_priority_$1_event_$2_on_$3_from_$4_to_$5(2, CUE_LIST_3, "2016-03-14", "14:00", "18:00", FRIDAY);
-
-        loader.saveSchedules();
-
-
+    public void testMidnightFix() {
+        Integer id =
+        when_add_priority_$1_event_$2_on_$3_from_$4_to_$5(1, CUE_LIST_2, "2016-03-14", "10:00", "00:00");
+        then_event_$1_end_time_id_$2(id, "23:59");
     }
 
-    @Inject private JsonEncoder loader;
 
     ///////////
     // Setup //
@@ -399,12 +393,12 @@ public class TestScheduler {
         }
     }
 
-    private Long when_add_priority_$1_event_$2_on_$3_from_$4_to_$5(int priority, Cue cue, String date, String start, String end, DayOfWeek... repeats) {
+    private Integer when_add_priority_$1_event_$2_on_$3_from_$4_to_$5(int priority, Cue cue, String date, String start, String end, DayOfWeek... repeats) {
         return when_add_priority_$1_event_$2_on_$3_from_$4_to_$5(priority, cue, date, start, end, null, repeats);
     }
 
-    Long when_add_priority_$1_event_$2_on_$3_from_$4_to_$5(int priority, Cue cue, String date, String start, String end, Class<? extends Exception> expectedExceptionClass, DayOfWeek... repeats) {
-        Long result = null;
+    Integer when_add_priority_$1_event_$2_on_$3_from_$4_to_$5(int priority, Cue cue, String date, String start, String end, Class<? extends Exception> expectedExceptionClass, DayOfWeek... repeats) {
+        Integer result = null;
         try {
             result = priority==1
                     ? scheduler.addEvent(new MediaEvent(nextEventId++, cue.getId(), date, start, end, repeats)).getId()
@@ -422,11 +416,11 @@ public class TestScheduler {
         return result;
     }
 
-    private void when_switch_event_$1_to_priority_$2(Long eventId, int priority) {
+    private void when_switch_event_$1_to_priority_$2(Integer eventId, int priority) {
         when_switch_event_$1_to_priority_$2(eventId, priority, null);
     }
 
-    void when_switch_event_$1_to_priority_$2(Long eventId, int priority, Class<? extends SchedulerException> expectedExceptionClass) {
+    void when_switch_event_$1_to_priority_$2(Integer eventId, int priority, Class<? extends SchedulerException> expectedExceptionClass) {
         try {
             scheduler.switchPriority(eventId, priority);
             if ( expectedExceptionClass!=null ) {
@@ -477,7 +471,7 @@ public class TestScheduler {
         assertEquals(count, total);
     }
 
-    void then_event_$1_exists_$2(Long eventId, boolean exists) {
+    void then_event_$1_exists_$2(Integer eventId, boolean exists) {
         MediaEvent event = scheduler.getEventById(eventId);
         assertEquals(exists, event!=null);
         try {
@@ -488,9 +482,14 @@ public class TestScheduler {
         }
     }
 
-    void then_event_$1_is_$2(long eventId, Cue cue) {
+    void then_event_$1_is_$2(Integer eventId, Cue cue) {
         MediaEvent actualEvent = scheduler.getEventById(eventId);
         assertEquals(cue.getId(), actualEvent.getCueId());
+    }
+
+    void then_event_$1_end_time_id_$2(long eventId, String endTime) {
+        MediaEvent actualEvent = scheduler.getEventById(eventId);
+        assertEquals(endTime, actualEvent.getEndTimeString());
     }
 
     void then_current_cuelist_is_$1(Cue cue) {

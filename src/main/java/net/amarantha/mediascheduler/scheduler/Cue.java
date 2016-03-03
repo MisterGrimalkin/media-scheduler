@@ -45,7 +45,7 @@ public class Cue {
 
     @Override
     public int hashCode() {
-        return id;
+        return (int)id;
     }
 
     @Override
