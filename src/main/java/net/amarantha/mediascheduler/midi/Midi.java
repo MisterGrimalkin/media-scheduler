@@ -10,6 +10,4 @@ public interface Midi {
 
     void send(int command, int channel, int data1, int data2);
 
-    void send(MidiCommand command, int data2);
-
 }

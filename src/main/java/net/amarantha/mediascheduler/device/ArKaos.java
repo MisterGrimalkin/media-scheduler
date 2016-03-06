@@ -43,8 +43,6 @@ public class ArKaos {
     public void shutdown() {
         stopAll();
         midi.closeDevice();
-        props.setProperty("brightness", brightness);
-        props.setProperty("contrast", contrast);
     }
 
     public void startCueList(Cue cue) {
@@ -66,11 +64,13 @@ public class ArKaos {
 
     public void setBrightness(int brightness) {
         this.brightness = brightness;
+        props.setProperty("brightness", brightness);
         brightnessCommand(brightness).send(midi);
     }
 
     public void setContrast(int contrast) {
         this.contrast = contrast;
+        props.setProperty("contrast", contrast);
         contrastCommand(contrast).send(midi);
     }
 
@@ -82,7 +82,7 @@ public class ArKaos {
         return contrast;
     }
 
-//////////////
+    //////////////
     // Commands //
     //////////////
 

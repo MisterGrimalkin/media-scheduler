@@ -3,6 +3,7 @@ package net.amarantha.mediascheduler.exception;
 public class PriorityOutOfBoundsException extends SchedulerException {
 
     public PriorityOutOfBoundsException() {
+        super("Priority out of bounds");
     }
 
     public PriorityOutOfBoundsException(String message) {

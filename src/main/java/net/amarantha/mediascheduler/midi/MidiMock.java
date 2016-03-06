@@ -32,11 +32,6 @@ public class MidiMock implements Midi {
         lastCommand[3] = data2;
     }
 
-    @Override
-    public void send(MidiCommand command, int data2) {
-        send(command.getCommand(), command.getChannel(), command.getData1(), data2);
-    }
-
     public int[] getLastCommand() {
         return lastCommand;
     }
