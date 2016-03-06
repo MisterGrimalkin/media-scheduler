@@ -24,8 +24,6 @@ public class MediaEvent implements Comparable<MediaEvent> {
 
     private Set<DayOfWeek> repeatOn = new HashSet<>();
 
-    @Inject private Scheduler scheduler;
-
     @JsonCreator
     public MediaEvent(
             @JsonProperty("cueId") int cueId,
@@ -150,24 +148,23 @@ public class MediaEvent implements Comparable<MediaEvent> {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
 
-        MediaEvent event = (MediaEvent) o;
+        MediaEvent that = (MediaEvent) o;
 
-        if (id != event.id) return false;
-        if (startDate != null ? !startDate.equals(event.startDate) : event.startDate != null) return false;
-        if (startTime != null ? !startTime.equals(event.startTime) : event.startTime != null) return false;
-        if (endTime != null ? !endTime.equals(event.endTime) : event.endTime != null) return false;
-        return repeatOn != null ? repeatOn.equals(event.repeatOn) : event.repeatOn == null;
+        if (id != that.id) return false;
+        if (cueId != that.cueId) return false;
+        if (startDate != null ? !startDate.equals(that.startDate) : that.startDate != null) return false;
+        if (startTime != null ? !startTime.equals(that.startTime) : that.startTime != null) return false;
+        return endTime != null ? endTime.equals(that.endTime) : that.endTime == null;
 
     }
 
     @Override
     public int hashCode() {
-        int result = (int) (id ^ (id >>> 32));
+        int result = id;
+        result = 31 * result + cueId;
         result = 31 * result + (startDate != null ? startDate.hashCode() : 0);
         result = 31 * result + (startTime != null ? startTime.hashCode() : 0);
         result = 31 * result + (endTime != null ? endTime.hashCode() : 0);
-        result = 31 * result + (repeatOn != null ? repeatOn.hashCode() : 0);
         return result;
     }
-
 }

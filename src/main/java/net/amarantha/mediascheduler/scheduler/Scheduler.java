@@ -53,6 +53,15 @@ public class Scheduler {
         return null;
     }
 
+    public Cue getCue(String name) {
+        for ( Cue cue : cues) {
+            if ( cue.getName().equals(name) ) {
+                return cue;
+            }
+        }
+        return null;
+    }
+
     public long addCue(Integer number, String name) {
         try {
             return addCue(new Cue(nextCueId++, number, name));
@@ -61,7 +70,7 @@ public class Scheduler {
     }
 
     public long addCue(Cue cue) throws DuplicateCueException {
-        if ( getCue(cue.getId())!=null ) {
+        if ( getCue(cue.getId())!=null || getCue(cue.getName())!=null ) {
             throw new DuplicateCueException();
         }
         if ( cue.getId()>=nextCueId ) {
@@ -99,17 +108,22 @@ public class Scheduler {
     // Schedules //
     ///////////////
 
+    private Map<Integer, Schedule> schedules = new LinkedHashMap<>();
+
     private static final String SCHEDULES_FILENAME = "schedules.json";
 
     public void loadSchedules() {
         schedules = json.decodeSchedulesFromFile(SCHEDULES_FILENAME);
+        for ( Schedule schedule : schedules.values() ) {
+            for ( MediaEvent event : schedule.getUniqueEvents() ) {
+                nextEventId = Math.max(event.getId()+1, nextEventId);
+            }
+        }
     }
 
     public void saveSchedules() {
         json.encodeAllSchedulesToFile(SCHEDULES_FILENAME);
     }
-
-    private Map<Integer, Schedule> schedules = new LinkedHashMap<>();
 
     public static final int MAX_PRIORITY = 10;
 

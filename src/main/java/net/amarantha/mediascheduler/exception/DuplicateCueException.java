@@ -3,7 +3,7 @@ package net.amarantha.mediascheduler.exception;
 public class DuplicateCueException extends SchedulerException {
 
     public DuplicateCueException() {
-        super("Duplicate Cue ID");
+        super("Cue already exists");
     }
 
     public DuplicateCueException(String message) {

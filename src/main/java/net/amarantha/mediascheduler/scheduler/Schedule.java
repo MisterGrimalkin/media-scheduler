@@ -26,7 +26,7 @@ public class Schedule {
     // Get Events //
     ////////////////
 
-    List<MediaEvent> getUniqueEvents() {
+    public List<MediaEvent> getUniqueEvents() {
         Set<Integer> ids = new HashSet<>();
         List<MediaEvent> result = new ArrayList<>();
         for ( Entry<DayOfWeek, Map<LocalDate, List<MediaEvent>>> dowEntry : allEvents.entrySet() ) {

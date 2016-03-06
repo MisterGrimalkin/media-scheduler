@@ -39,13 +39,18 @@ public class Cue {
 
         Cue cue = (Cue) o;
 
-        return id == cue.id;
+        if (id != cue.id) return false;
+        if (number != cue.number) return false;
+        return name != null ? name.equals(cue.name) : cue.name == null;
 
     }
 
     @Override
     public int hashCode() {
-        return (int)id;
+        int result = id;
+        result = 31 * result + number;
+        result = 31 * result + (name != null ? name.hashCode() : 0);
+        return result;
     }
 
     @Override
