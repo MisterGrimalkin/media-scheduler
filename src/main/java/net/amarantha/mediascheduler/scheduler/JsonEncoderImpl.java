@@ -9,6 +9,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
+import net.amarantha.mediascheduler.cue.Cue;
 import net.amarantha.mediascheduler.exception.ScheduleConflictException;
 
 import java.io.File;

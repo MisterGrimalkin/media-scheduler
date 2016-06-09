@@ -86,17 +86,17 @@ public class MediaEvent implements Comparable<MediaEvent> {
     }
 
     @JsonProperty("startDate")
-    String getStartDateString() {
+    public String getStartDateString() {
         return startDate.toString();
     }
 
     @JsonProperty("startTime")
-    String getStartTimeString() {
+    public String getStartTimeString() {
         return startTime.toString();
     }
 
     @JsonProperty("endTime")
-    String getEndTimeString() {
+    public String getEndTimeString() {
         return endTime.toString();
     }
 

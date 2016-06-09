@@ -1,10 +1,10 @@
 package net.amarantha.mediascheduler.scheduler;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import net.amarantha.mediascheduler.cue.Cue;
 
 import java.io.IOException;
 import java.time.LocalDate;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 

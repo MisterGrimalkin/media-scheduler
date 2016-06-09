@@ -2,9 +2,10 @@ package net.amarantha.mediascheduler.device;
 
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
-import net.amarantha.mediascheduler.midi.Midi;
+import net.amarantha.mediascheduler.midi.MidiService;
 import net.amarantha.mediascheduler.midi.MidiCommand;
-import net.amarantha.mediascheduler.scheduler.Cue;
+import net.amarantha.mediascheduler.cue.Cue;
+import net.amarantha.mediascheduler.cue.MidiCue;
 import net.amarantha.mediascheduler.utility.PropertyManager;
 
 import static javax.sound.midi.ShortMessage.*;
@@ -21,10 +22,10 @@ public class ArKaos {
     private int contrastCC;
 
     private PropertyManager props;
-    private Midi midi;
+    private MidiService midi;
 
     @Inject
-    public ArKaos(PropertyManager props, Midi midi) {
+    public ArKaos(PropertyManager props, MidiService midi) {
         this.props = props;
         this.midi = midi;
         brightness = props.getInt("brightness", 64);
@@ -45,7 +46,7 @@ public class ArKaos {
         midi.closeDevice();
     }
 
-    public void startCueList(Cue cue) {
+    public void startCue(Cue cue) {
         if ( currentCue !=null ) {
             stopCueCommand(currentCue).send(midi);
         }
@@ -95,17 +96,17 @@ public class ArKaos {
     }
 
     public MidiCommand startCueCommand(Cue cue) {
-        return new MidiCommand(CONTROL_CHANGE, 1, cue.getNumber(), 127);
+        return new MidiCommand(CONTROL_CHANGE, 1, ((MidiCue)cue).getCommand().getData1(), 127);
     }
 
     public MidiCommand stopCueCommand(Cue cue) {
-        return new MidiCommand(CONTROL_CHANGE, 1, cue.getNumber(), 0);
+        return new MidiCommand(CONTROL_CHANGE, 1, ((MidiCue)cue).getCommand().getData1(), 0);
     }
 
     public MidiCommand stopAllCommand() {
         return new MidiCommand() {
             @Override
-            public void send(Midi midi) {
+            public void send(MidiService midi) {
                 for (int n = 1; n < 11; n++) {
                     midi.send(CONTROL_CHANGE, 1, n, 0);
                 }

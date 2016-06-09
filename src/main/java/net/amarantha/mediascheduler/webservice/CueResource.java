@@ -3,7 +3,7 @@ package net.amarantha.mediascheduler.webservice;
 import com.google.inject.Inject;
 import net.amarantha.mediascheduler.exception.CueInUseException;
 import net.amarantha.mediascheduler.exception.DuplicateCueException;
-import net.amarantha.mediascheduler.scheduler.Cue;
+import net.amarantha.mediascheduler.cue.Cue;
 import net.amarantha.mediascheduler.scheduler.JsonEncoder;
 import net.amarantha.mediascheduler.scheduler.Scheduler;
 

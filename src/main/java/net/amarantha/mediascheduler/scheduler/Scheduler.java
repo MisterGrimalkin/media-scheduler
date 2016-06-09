@@ -2,6 +2,7 @@ package net.amarantha.mediascheduler.scheduler;
 
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
+import net.amarantha.mediascheduler.cue.Cue;
 import net.amarantha.mediascheduler.device.ArKaos;
 import net.amarantha.mediascheduler.device.Projector;
 import net.amarantha.mediascheduler.exception.*;
@@ -13,8 +14,6 @@ import java.util.Map.Entry;
 @Singleton
 public class Scheduler {
 
-    @Inject private ArKaos mediaServer;
-    @Inject private Projector projector;
     @Inject private JsonEncoder json;
 
     @Inject private Now now;
@@ -62,13 +61,6 @@ public class Scheduler {
         return null;
     }
 
-    public long addCue(Integer number, String name) {
-        try {
-            return addCue(new Cue(nextCueId++, number, name));
-        } catch (DuplicateCueException ignored) {}
-        return -1;
-    }
-
     public long addCue(Cue cue) throws DuplicateCueException {
         if ( getCue(cue.getId())!=null || getCue(cue.getName())!=null ) {
             throw new DuplicateCueException();
@@ -95,7 +87,7 @@ public class Scheduler {
         saveCues();
     }
 
-    void clearCues() {
+    public void clearCues() {
         cues.clear();
         saveCues();
     }
@@ -127,7 +119,7 @@ public class Scheduler {
 
     public static final int MAX_PRIORITY = 10;
 
-    void clearSchedules() {
+    public void clearSchedules() {
         schedules.clear();
     }
 
@@ -235,8 +227,6 @@ public class Scheduler {
     private boolean paused = false;
 
     public void startup() {
-        mediaServer.startup();
-        projector.switchOn(true);
         loadCues();
         loadSchedules();
         startSchedulerLoop();
@@ -258,24 +248,26 @@ public class Scheduler {
         this.paused = paused;
     }
 
-    void checkSchedule() {
+    private Cue currentCue;
+    private Cue stopAll;
+
+    public void checkSchedule() {
         MediaEvent currentEvent = getCurrentEvent();
         Cue nextCue = ( currentEvent==null ? null : getCue(currentEvent.getCueId()) );
-        Cue currentCue = mediaServer.getCurrentCue();
-        if ( nextCue ==null ) {
-            if ( currentCue !=null ) {
-                mediaServer.stopAll();
+        if ( nextCue == null ) {
+            if ( currentCue !=null && stopAll != null ) {
+                stopAll.start();
             }
         } else {
-            if ( !nextCue.equals(currentCue) ) {
-                mediaServer.startCueList(getCue(currentEvent.getCueId()));
+            if ( currentCue != null && !nextCue.equals(currentCue) ) {
+                currentCue.stop();
             }
+            currentCue = nextCue;
+            currentCue.start();
         }
     }
 
     public void shutdown() {
-        mediaServer.shutdown();
-        projector.switchOn(false);
         if ( timer!=null ) {
             timer.cancel();
         }

@@ -5,7 +5,7 @@ import com.google.inject.Singleton;
 import javax.sound.midi.*;
 
 @Singleton
-public class MidiImpl implements Midi {
+public class MidiServiceImpl implements MidiService {
 
     private MidiDevice midiDevice;
 
@@ -28,6 +28,13 @@ public class MidiImpl implements Midi {
     public void closeDevice() {
         if ( midiDevice!=null ) {
             midiDevice.close();
+        }
+    }
+
+    @Override
+    public void send(MidiCommand midiCommand) {
+        if ( midiCommand!=null ) {
+            send(midiCommand.getCommand(), midiCommand.getChannel(), midiCommand.getData1(), midiCommand.getData2());
         }
     }
 

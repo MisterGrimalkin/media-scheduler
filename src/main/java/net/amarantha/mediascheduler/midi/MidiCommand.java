@@ -16,7 +16,7 @@ public class MidiCommand {
         this.data2 = data2;
     }
 
-    public void send(Midi midi) {
+    public void send(MidiService midi) {
         midi.send(command, channel, data1, data2);
     }
 
@@ -52,4 +52,31 @@ public class MidiCommand {
         this.data2 = data2;
     }
 
+    @Override
+    public String toString() {
+        return "[MidiCommand:" + command +"," + channel + "," + data1 + "," + data2 + "]";
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        MidiCommand that = (MidiCommand) o;
+
+        if (command != that.command) return false;
+        if (channel != that.channel) return false;
+        if (data1 != that.data1) return false;
+        return data2 == that.data2;
+
+    }
+
+    @Override
+    public int hashCode() {
+        int result = command;
+        result = 31 * result + channel;
+        result = 31 * result + data1;
+        result = 31 * result + data2;
+        return result;
+    }
 }

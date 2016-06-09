@@ -3,10 +3,10 @@ package net.amarantha.mediascheduler.midi;
 import com.google.inject.Singleton;
 
 @Singleton
-public class MidiMock implements Midi {
+public class MockMidiService implements MidiService {
 
     private boolean deviceOpen = false;
-    private int[] lastCommand = null;
+    private MidiCommand lastMidiCommand = null;
 
     @Override
     public void openDevice() {
@@ -24,20 +24,23 @@ public class MidiMock implements Midi {
     }
 
     @Override
-    public void send(int command, int channel, int data1, int data2) {
-        lastCommand = new int[4];
-        lastCommand[0] = command;
-        lastCommand[1] = channel;
-        lastCommand[2] = data1;
-        lastCommand[3] = data2;
+    public void send(MidiCommand midiCommand) {
+        lastMidiCommand = midiCommand;
     }
 
-    public int[] getLastCommand() {
-        return lastCommand;
+    @Override
+    public void send(int command, int channel, int data1, int data2) {
+        lastMidiCommand = new MidiCommand(command, channel, data1, data2);
+    }
+
+    public MidiCommand getLastMidiCommand() {
+        return lastMidiCommand;
     }
 
     public boolean isDeviceOpen() {
         return deviceOpen;
     }
+
+    public void clearLastCommand() { lastMidiCommand = null; }
 
 }
