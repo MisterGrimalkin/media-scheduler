@@ -8,30 +8,36 @@ import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.google.inject.Inject;
+import com.google.inject.Injector;
 import com.google.inject.Singleton;
 import net.amarantha.scheduler.cue.Cue;
 import net.amarantha.scheduler.cue.HttpCue;
 import net.amarantha.scheduler.cue.MidiCue;
 import net.amarantha.scheduler.exception.ScheduleConflictException;
+import net.amarantha.scheduler.http.Param;
 import net.amarantha.scheduler.midi.MidiCommand;
 import org.codehaus.jettison.json.JSONArray;
 import org.codehaus.jettison.json.JSONException;
 import org.codehaus.jettison.json.JSONObject;
+import org.glassfish.grizzly.http.Method;
 
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.time.LocalDate;
 import java.util.*;
 import java.util.Map.Entry;
 
-import static net.amarantha.scheduler.scheduler.JsonArrayBuilder.*;
-import static net.amarantha.scheduler.scheduler.JsonBuilder.*;
+import static net.amarantha.scheduler.scheduler.JsonArrayBuilder.jsonArray;
+import static net.amarantha.scheduler.scheduler.JsonBuilder.json;
 
 @Singleton
 public class JsonEncoderImpl implements JsonEncoder {
 
     @Inject private Scheduler scheduler;
+    @Inject private Injector injector;
 
     public JsonEncoderImpl() {}
 
@@ -121,45 +127,47 @@ public class JsonEncoderImpl implements JsonEncoder {
 
     @Override
     public String encodeCues() {
-        return
+        String cuesJson =
             json().put("cues",
-                jsonArray().from(scheduler.getCues(), (cue) -> {
-
-                    JsonBuilder cueJson =
-                        json()
-                            .put("class", cue.getClass().getSimpleName())
-                            .put("id", cue.getId())
-                            .put("name", cue.getName());
-
-                    if (cue instanceof HttpCue) {
-                        HttpCue httpCue = (HttpCue) cue;
-                        cueJson
-                            .put("path", httpCue.getPath())
-                            .put("payload", httpCue.getPayload())
-                            .put("method", httpCue.getMethod())
-                            .put("hosts",
-                                jsonArray().from(httpCue.getHosts(), (host) ->
-                                    json().put("ip", host)
-                                ))
-                            .put("params",
-                                jsonArray().from(httpCue.getParams(), (param) ->
-                                    json().put("name", param.getName())
-                                          .put("value", param.getValue())
-                                )
-                            );
-
-                    } else if ( cue instanceof MidiCue ) {
-                        MidiCommand command = ((MidiCue)cue).getCommand();
-                        cueJson
-                            .put("command", command.getCommand())
-                            .put("channel", command.getChannel())
-                            .put("data1", command.getData1())
-                            .put("data2", command.getData2());
-                    }
-
-                    return cueJson;
-                })
+                jsonArray().from(scheduler.getCues(), this::encodeCue)
             ).toJsonString();
+        return cuesJson;
+    }
+
+    @Override
+    public JsonBuilder encodeCue(Cue cue) {
+        JsonBuilder cueJson =
+                json()
+                        .put("class", cue.getClass().getSimpleName())
+                        .put("id", cue.getId())
+                        .put("name", cue.getName());
+
+        if (cue instanceof HttpCue) {
+            HttpCue httpCue = (HttpCue) cue;
+            cueJson
+                    .put("path", httpCue.getPath())
+                    .put("payload", httpCue.getPayload()==null ? "" : httpCue.getPayload())
+                    .put("method", httpCue.getMethod())
+                    .put("hosts",
+                            jsonArray().from(httpCue.getHosts(), (host) ->
+                                    json().put("ip", host)
+                            ))
+                    .put("params",
+                            jsonArray().from(httpCue.getParams(), (param) ->
+                                    json().put("name", param.getName())
+                                            .put("value", param.getValue())
+                            ));
+
+        } else if ( cue instanceof MidiCue ) {
+            MidiCommand command = ((MidiCue)cue).getCommand();
+            cueJson
+                    .put("command", command.getCommand())
+                    .put("channel", command.getChannel())
+                    .put("data1", command.getData1())
+                    .put("data2", command.getData2());
+        }
+
+        return cueJson;
     }
 
     @Override
@@ -172,48 +180,64 @@ public class JsonEncoderImpl implements JsonEncoder {
     }
 
     @Override
-    public Cue decodeCue(String json) {
-
-
+    public Set<Cue> decodeCues(String json) {
+        Set<Cue> result = new HashSet<>();
         try {
             JSONObject jsonObject = new JSONObject(json);
-            JSONArray cuesArray = (JSONArray)jsonObject.get("cues");
-            System.out.println(cuesArray);
-
-
-
-        } catch (JSONException e) {
-            e.printStackTrace();
-        }
-
-        try {
-            Cue cue = createMapper().readValue(json, Cue.class);
-            if ( cue.getId()==-1 ) {
-                cue.setId(Scheduler.nextCueId++);
+            JSONArray cuesArray = (JSONArray) jsonObject.get("cues");
+            for ( int i=0; i<cuesArray.length(); i++ ) {
+                JSONObject cueObj = cuesArray.getJSONObject(i);
+                Cue cue = decodeCue(cueObj);
+                result.add(cue);
             }
-            return cue;
-        } catch (IOException e) {
+        } catch (JSONException | ClassNotFoundException e) {
             e.printStackTrace();
         }
-        return null;
+        return result;
+    }
+
+    @Override
+    public Cue decodeCue(JSONObject cueObj) throws JSONException, ClassNotFoundException {
+        String className = "net.amarantha.scheduler.cue." + cueObj.get("class").toString();
+        Class<? extends Cue> cueClass = (Class<? extends Cue>) Class.forName(className);
+        Cue cue = injector.getInstance(cueClass);
+        cue.setId(cueObj.getInt("id"));
+        cue.setName(cueObj.getString("name"));
+        if ( cue instanceof HttpCue ) {
+            HttpCue httpCue = (HttpCue)cue;
+            httpCue.setPath(cueObj.getString("path"));
+            httpCue.setPayload(cueObj.getString("payload"));
+            httpCue.setMethod(Method.valueOf(cueObj.getString("method")));
+            JSONArray hostsArr = (JSONArray)cueObj.get("hosts");
+            for ( int j=0; j<hostsArr.length(); j++ ) {
+                JSONObject hostObj = hostsArr.getJSONObject(j);
+                httpCue.addHost(hostObj.getString("ip"));
+            }
+            JSONArray paramArr = (JSONArray)cueObj.get("params");
+            for ( int j=0; j<paramArr.length(); j++ ) {
+                JSONObject paramObj = paramArr.getJSONObject(j);
+                httpCue.addParam(new Param(paramObj.getString("name"), paramObj.getString("value")));
+            }
+
+        } else if (cue instanceof MidiCue) {
+            MidiCue midiCue = (MidiCue) cue;
+            Integer command = cueObj.getInt("command");
+            Integer channel = cueObj.getInt("channel");
+            Integer data1 = cueObj.getInt("data1");
+            Integer data2 = cueObj.getInt("data2");
+            midiCue.setCommand(new MidiCommand(command, channel+1, data1, data2));
+        }
+        return cue;
     }
 
     @Override
     public Set<Cue> decodeCuesFromFile(String filename) {
         Set<Cue> result = new HashSet<>();
         try {
-            List<Cue> cues = createMapper().readValue(new File(filename), new TypeReference<List<Cue>>(){});
-            if ( cues!=null ) {
-                for (Cue cue : cues) {
-                    if (cue.getId() == -1) {
-                        cue.setId(Scheduler.nextCueId++);
-                    }
-                    result.add(cue);
-                }
-            }
+            String json = new String(Files.readAllBytes(Paths.get(filename)));
+            result = decodeCues(json);
         } catch (IOException e) {
             e.printStackTrace();
-            encodeCuesToFile(filename);
         }
         return result;
     }
@@ -222,8 +246,6 @@ public class JsonEncoderImpl implements JsonEncoder {
     public String encodeMediaEvent(MediaEvent event) throws JsonProcessingException {
         return createMapper().writeValueAsString(event);
     }
-
-
 
     @Override
     public MediaEvent decodeMediaEvent(String json) throws IOException {

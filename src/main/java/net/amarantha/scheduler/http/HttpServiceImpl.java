@@ -58,11 +58,12 @@ public class HttpServiceImpl implements HttpService {
                 Response response = null;
                 try {
                     response = getEndpoint(host, path, params).post(Entity.entity(payload, MediaType.TEXT_PLAIN));
-                } catch ( Exception e ) {}
+                } catch ( Exception e ) {
+                    e.printStackTrace();
+                }
                 if ( callback!=null ) {
                     callback.call(response);
                 }
-
             }
         }, 0);
     }

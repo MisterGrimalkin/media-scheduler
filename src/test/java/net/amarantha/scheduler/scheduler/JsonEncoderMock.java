@@ -1,66 +1,39 @@
 package net.amarantha.scheduler.scheduler;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.google.inject.Singleton;
 import net.amarantha.scheduler.cue.Cue;
 
 import java.io.IOException;
 import java.time.LocalDate;
 import java.util.*;
 
-public class JsonEncoderMock implements JsonEncoder {
+@Singleton
+public class JsonEncoderMock extends JsonEncoderImpl {
 
-    @Override
-    public String encodeAllSchedules() {
-        return null;
-    }
+    private Map<String, String> mockFiles = new HashMap<>();
 
     @Override
     public void encodeAllSchedulesToFile(String filename) {
-
+        mockFiles.put(filename, encodeAllSchedules());
     }
 
     @Override
     public Map<Integer, Schedule> decodeSchedulesFromFile(String filename) {
+
         return new HashMap<>();
     }
 
     @Override
-    public String encodeSchedule(int priority, LocalDate date) {
-        return null;
-    }
-
-    @Override
-    public String encodeCues() {
-        return null;
-    }
-
-    @Override
     public void encodeCuesToFile(String filename) {
-
-    }
-
-    @Override
-    public Cue decodeCue(String json) {
-        return null;
+        String json = encodeCues();
+        mockFiles.put(filename, json);
     }
 
     @Override
     public Set<Cue> decodeCuesFromFile(String filename) {
-        return new HashSet<Cue>();
+        String json = mockFiles.get(filename);
+        return decodeCues(json);
     }
 
-    @Override
-    public String encodeMediaEvent(MediaEvent event) throws JsonProcessingException {
-        return null;
-    }
-
-    @Override
-    public MediaEvent decodeMediaEvent(String json) throws IOException {
-        return null;
-    }
-
-    @Override
-    public void saveSchedules() {
-
-    }
 }

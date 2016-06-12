@@ -25,25 +25,16 @@ public class Application {
 
     public void startApplication() {
 
-        try {
-
-            List<String> hosts = new ArrayList<>();
-            hosts.add("192.168.0.18:8001");
-            hosts.add("192.168.0.12:8001");
-
-            Cue cue1 = cueFactory.makeHttpCue(1, "Logo", Method.POST, hosts, "lightboard/scene/logo/load", "What?");
-            Cue cue2 = cueFactory.makeHttpCue(2, "OneMessage", Method.GET, hosts, "lightboard/scene/onezone/load", null, new Param("thingy","wotsit"));
-            Cue cue3 = cueFactory.makeMidiCue(3, "C-Sharp", NOTE_ON, 1, 60, 100);
-
-            scheduler.addCue(cue1);
-            scheduler.addCue(cue2);
-            scheduler.addCue(cue3);
-
-
-        } catch (DuplicateCueException e) {
-            e.printStackTrace();
-        }
-
+//        try {
+//            Cue cue = cueFactory.makeHttpCue(40, "test", Method.POST, "192.168.30.184:8001", "lightboard/scene/logo/load", "");
+//            cue.start();
+//            Thread.sleep(3000);
+//            cueFactory.makeHttpCue(41, "mes", Method.POST, "192.168.30.184:8001", "lightboard/scene/triple/load", "").start();
+//            Thread.sleep(3000);
+//            cue.start();
+//        } catch (InterruptedException e) {
+//            e.printStackTrace();
+//        }
 
         System.out.println("Starting Up...");
         scheduler.startup();
@@ -61,4 +52,25 @@ public class Application {
 
     }
 
+    private void makeTestCues() {
+        try {
+
+            List<String> hosts = new ArrayList<>();
+            hosts.add("192.168.0.18:8001");
+            hosts.add("192.168.0.12:8001");
+
+            Cue cue1 = cueFactory.makeHttpCue(1, "Logo", Method.POST, hosts, "lightboard/scene/logo/load", "What?");
+            Cue cue2 = cueFactory.makeHttpCue(2, "OneMessage", Method.GET, hosts, "lightboard/scene/onezone/load", null, new Param("thingy","wotsit"));
+            Cue cue3 = cueFactory.makeMidiCue(3, "C-Sharp", NOTE_ON, 1, 60, 100);
+
+            scheduler.addCue(cue1);
+            scheduler.addCue(cue2);
+            scheduler.addCue(cue3);
+
+        } catch (DuplicateCueException e) {
+            e.printStackTrace();
+        }
+
+
+    }
 }

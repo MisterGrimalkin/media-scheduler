@@ -2,6 +2,8 @@ package net.amarantha.scheduler.scheduler;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import net.amarantha.scheduler.cue.Cue;
+import org.codehaus.jettison.json.JSONException;
+import org.codehaus.jettison.json.JSONObject;
 
 import java.io.IOException;
 import java.time.LocalDate;
@@ -20,9 +22,13 @@ public interface JsonEncoder {
 
     String encodeCues();
 
+    JsonBuilder encodeCue(Cue cue);
+
     void encodeCuesToFile(String filename);
 
-    Cue decodeCue(String json);
+    Set<Cue> decodeCues(String json);
+
+    Cue decodeCue(JSONObject cueObj) throws JSONException, ClassNotFoundException ;
 
     Set<Cue> decodeCuesFromFile(String filename);
 

@@ -26,11 +26,11 @@ public class Scheduler {
 
     private static final String CUES_FILE = "cues.json";
 
-    private void loadCues() {
-//        cues = json.decodeCuesFromFile(CUES_FILE);
-//        for ( Cue cue : cues ) {
-//            nextCueId = Math.max(cue.getId()+1, nextCueId);
-//        }
+    public void loadCues() {
+        cues = json.decodeCuesFromFile(CUES_FILE);
+        for ( Cue cue : cues ) {
+            nextCueId = Math.max(cue.getId()+1, nextCueId);
+        }
     }
 
     public void saveCues() {
@@ -66,6 +66,9 @@ public class Scheduler {
         if ( cue.getId()>=nextCueId ) {
             nextCueId = cue.getId()+1;
         }
+        if ( cue.getId()<0 ) {
+            cue.setId(nextCueId++);
+        }
         cues.add(cue);
         saveCues();
         return cue.getId();
@@ -76,9 +79,14 @@ public class Scheduler {
     }
 
     public void removeCue(Cue cue) throws CueInUseException {
+        removeCue(cue, false);
+    }
+
+    public void removeCue(Cue cue, boolean force) throws CueInUseException {
         List<MediaEvent> events = getEventsByCue(cue);
-        if ( events.isEmpty() ) {
-            cues.remove(cue);
+        if ( force || events.isEmpty() ) {
+            Cue actualCue = getCue(cue.getId());
+            cues.remove(actualCue);
         } else {
             throw new CueInUseException("Cue " + cue + " is used by " + events.size() + " events");
         }
