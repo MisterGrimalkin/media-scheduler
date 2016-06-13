@@ -16,16 +16,13 @@ import net.amarantha.scheduler.cue.MidiCue;
 import net.amarantha.scheduler.exception.ScheduleConflictException;
 import net.amarantha.scheduler.http.Param;
 import net.amarantha.scheduler.midi.MidiCommand;
+import net.amarantha.scheduler.utility.FileService;
 import org.codehaus.jettison.json.JSONArray;
 import org.codehaus.jettison.json.JSONException;
 import org.codehaus.jettison.json.JSONObject;
 import org.glassfish.grizzly.http.Method;
 
-import java.io.File;
-import java.io.FileWriter;
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.time.LocalDate;
 import java.util.*;
 import java.util.Map.Entry;
@@ -38,6 +35,7 @@ public class JsonEncoderImpl implements JsonEncoder {
 
     @Inject private Scheduler scheduler;
     @Inject private Injector injector;
+    @Inject private FileService fileService;
 
     public JsonEncoderImpl() {}
 
@@ -77,32 +75,32 @@ public class JsonEncoderImpl implements JsonEncoder {
 
     @Override
     public void encodeAllSchedulesToFile(String filename) {
-        try {
-            createMapper().writeValue(new File(filename), buildWrappers());
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        fileService.writeToFile(filename, encodeAllSchedules());
     }
 
     @Override
     public Map<Integer, Schedule> decodeSchedulesFromFile(String filename) {
         Map<Integer, Schedule> result = new HashMap<>();
-        try {
-            List<ScheduleWrapper> wrappers = createMapper().readValue(new File(filename), new TypeReference<List<ScheduleWrapper>>(){});
-            for ( ScheduleWrapper wrapper : wrappers ) {
-                Schedule schedule = new Schedule();
-                for ( MediaEvent event : wrapper.events ) {
-                    try {
-                        schedule.addEvent(event);
-                    } catch (ScheduleConflictException e) {
-                        e.printStackTrace();
+        String json = fileService.readFromFile(filename);
+        if ( json != null ) {
+            try {
+                List<ScheduleWrapper> wrappers = createMapper().readValue(json, new TypeReference<List<ScheduleWrapper>>() {
+                });
+                for (ScheduleWrapper wrapper : wrappers) {
+                    Schedule schedule = new Schedule();
+                    for (MediaEvent event : wrapper.events) {
+                        try {
+                            schedule.addEvent(event);
+                        } catch (ScheduleConflictException e) {
+                            e.printStackTrace();
+                        }
                     }
+                    result.put(wrapper.priority, schedule);
                 }
-                result.put(wrapper.priority, schedule);
+            } catch (IOException e) {
+                e.printStackTrace();
+                encodeAllSchedulesToFile(filename);
             }
-        } catch (IOException e) {
-            e.printStackTrace();
-            encodeAllSchedulesToFile(filename);
         }
         return result;
     }
@@ -172,11 +170,7 @@ public class JsonEncoderImpl implements JsonEncoder {
 
     @Override
     public void encodeCuesToFile(String filename) {
-        try (FileWriter output = new FileWriter(filename)) {
-            output.write(encodeCues());
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        fileService.writeToFile(filename, encodeCues());
     }
 
     @Override
@@ -232,14 +226,8 @@ public class JsonEncoderImpl implements JsonEncoder {
 
     @Override
     public Set<Cue> decodeCuesFromFile(String filename) {
-        Set<Cue> result = new HashSet<>();
-        try {
-            String json = new String(Files.readAllBytes(Paths.get(filename)));
-            result = decodeCues(json);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        return result;
+        String json = fileService.readFromFile(filename);
+        return decodeCues(json);
     }
 
     @Override

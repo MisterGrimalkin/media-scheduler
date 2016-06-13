@@ -2,6 +2,7 @@ package net.amarantha.scheduler;
 
 import com.google.inject.Inject;
 import net.amarantha.scheduler.cue.Cue;
+import net.amarantha.scheduler.cue.CueFactory;
 import net.amarantha.scheduler.exception.CueInUseException;
 import net.amarantha.scheduler.exception.DuplicateCueException;
 import net.amarantha.scheduler.exception.SchedulerException;
@@ -14,6 +15,7 @@ import net.amarantha.scheduler.scheduler.MediaEvent;
 import net.amarantha.scheduler.scheduler.Schedule;
 import net.amarantha.scheduler.scheduler.Scheduler;
 import net.amarantha.scheduler.utility.Now;
+import org.glassfish.grizzly.http.Method;
 import org.testng.Assert;
 
 import java.time.DayOfWeek;
@@ -21,17 +23,28 @@ import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
 
+import static javax.sound.midi.ShortMessage.NOTE_ON;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.fail;
 
 public class TestCase {
 
+    protected Cue cueFail;
+    protected Cue cueDupe;
+    protected Cue cue1;
+    protected Cue cue2;
+    protected Cue cue3;
+    protected Cue cue4;
+
+
     @Inject protected Now now;
     @Inject protected Scheduler scheduler;
 
     @Inject protected MidiService midi;
     @Inject protected HttpService http;
+
+    @Inject protected CueFactory cueFactory;
 
     protected void given_midi_device() {
         midi.openDevice();
@@ -223,6 +236,23 @@ public class TestCase {
         if (actualExceptionClass != expectedExceptionClass) {
             fail("Wrong exception thrown");
         }
+    }
+
+    protected void makeTestCues() {
+        cueFail =   cueFactory.makeMidiCue(0, "This Will Fail",   NOTE_ON, 1,  0, 0);
+        cueDupe =   cueFactory.makeMidiCue(1, "Duplicate",        NOTE_ON, 1, 99, 0);
+        cue1 =      cueFactory.makeMidiCue(1, "Dragons",          NOTE_ON, 1,  1, 0);
+        cue2 =      cueFactory.makeMidiCue(2, "Polar Bears",      NOTE_ON, 1,  2, 0);
+        cue3 =      cueFactory.makeHttpCue(3, "Skinny Dips",      Method.GET, "host1", "path1", null);
+        cue4 =      cueFactory.makeHttpCue(4, "Does Not Exist",   Method.POST, "host2", "path2", "payload");
+    }
+
+    protected void when_setup_cues() {
+        when_add_cue_$1(cueFail, false);
+        when_add_cue_$1(cue1, false);
+        when_add_cue_$1(cue2, false);
+        when_add_cue_$1(cue3, false);
+        then_there_are_$1_cues(4);
     }
 
 

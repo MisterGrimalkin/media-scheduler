@@ -9,6 +9,8 @@ import net.amarantha.scheduler.midi.MidiService;
 import net.amarantha.scheduler.midi.MidiServiceImpl;
 import net.amarantha.scheduler.scheduler.JsonEncoder;
 import net.amarantha.scheduler.scheduler.JsonEncoderImpl;
+import net.amarantha.scheduler.utility.FileService;
+import net.amarantha.scheduler.utility.FileServiceImpl;
 
 public class ApplicationModule extends AbstractModule {
 
@@ -18,6 +20,7 @@ public class ApplicationModule extends AbstractModule {
         bind(HttpService.class).to(HttpServiceImpl.class);
         bind(Projector.class).to(ProjectorMock.class);
         bind(JsonEncoder.class).to(JsonEncoderImpl.class);
+        bind(FileService.class).to(FileServiceImpl.class);
     }
 
 }

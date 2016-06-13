@@ -3,8 +3,10 @@ package net.amarantha.scheduler.scheduler;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 import net.amarantha.scheduler.cue.Cue;
+import net.amarantha.scheduler.cue.CueFactory;
 import net.amarantha.scheduler.exception.*;
 import net.amarantha.scheduler.utility.Now;
+import org.glassfish.grizzly.http.Method;
 
 import java.util.*;
 import java.util.Map.Entry;
@@ -14,9 +16,12 @@ public class Scheduler {
 
     @Inject private JsonEncoder json;
 
+//    @Inject private CueFactory cueFactory;
+
     @Inject private Now now;
 
-    public Scheduler() {}
+    public Scheduler() {
+    }
 
     //////////
     // Cues //
