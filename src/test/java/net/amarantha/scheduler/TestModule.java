@@ -8,7 +8,6 @@ import net.amarantha.scheduler.http.MockHttpService;
 import net.amarantha.scheduler.midi.MidiService;
 import net.amarantha.scheduler.midi.MockMidiService;
 import net.amarantha.scheduler.scheduler.JsonEncoder;
-import net.amarantha.scheduler.scheduler.JsonEncoderImpl;
 import net.amarantha.scheduler.scheduler.JsonEncoderMock;
 import net.amarantha.scheduler.utility.FileService;
 import net.amarantha.scheduler.utility.MockFileService;

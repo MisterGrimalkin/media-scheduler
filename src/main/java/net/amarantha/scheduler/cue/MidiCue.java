@@ -1,8 +1,8 @@
 package net.amarantha.scheduler.cue;
 
 import com.google.inject.Inject;
-import net.amarantha.scheduler.midi.MidiService;
 import net.amarantha.scheduler.midi.MidiCommand;
+import net.amarantha.scheduler.midi.MidiService;
 
 public class MidiCue extends Cue {
 

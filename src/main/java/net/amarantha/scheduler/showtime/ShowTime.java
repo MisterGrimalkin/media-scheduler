@@ -1,7 +1,12 @@
 package net.amarantha.scheduler.showtime;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 import java.time.LocalDate;
 import java.time.LocalTime;
+import java.time.format.DateTimeFormatter;
 
 public class ShowTime implements Comparable<ShowTime> {
 
@@ -17,6 +22,10 @@ public class ShowTime implements Comparable<ShowTime> {
 
     private boolean alwaysShowOnDay;
     private boolean alwaysShow;
+
+    @JsonCreator
+    public ShowTime() {
+    }
 
     public int getId() {
         return id;
@@ -38,13 +47,24 @@ public class ShowTime implements Comparable<ShowTime> {
         return date;
     }
 
+    @JsonProperty("date")
+    public String getDateStr() { return date.toString(); }
+
+    @JsonIgnore
     public LocalTime getStartTime() {
         return startTime;
     }
 
+    @JsonProperty("startTime")
+    public String getStartTimeStr() { return startTime.toString(); }
+
+    @JsonIgnore
     public LocalTime getEndTime() {
         return endTime;
     }
+
+    @JsonProperty("endTime")
+    public String getEndTimeStr() { return endTime.toString(); }
 
     public boolean isAlwaysShowOnDay() {
         return alwaysShowOnDay;
@@ -79,16 +99,34 @@ public class ShowTime implements Comparable<ShowTime> {
         return this;
     }
 
+    @JsonProperty("date")
+    public ShowTime setDateStr(String date) {
+        return setDate(LocalDate.parse(date));
+    }
+
+    @JsonIgnore
     public ShowTime setDate(LocalDate date) {
         this.date = date;
         return this;
     }
 
+    @JsonProperty("startTime")
+    public ShowTime setStartTimeStr(String startTime) {
+        return setStartTime(LocalTime.parse(startTime));
+    }
+
+    @JsonIgnore
     public ShowTime setStartTime(LocalTime startTime) {
         this.startTime = startTime;
         return this;
     }
 
+    @JsonProperty("endTime")
+    public ShowTime setEndTimeStr(String endTime) {
+        return setEndTime(LocalTime.parse(endTime));
+    }
+
+    @JsonIgnore
     public ShowTime setEndTime(LocalTime endTime) {
         this.endTime = endTime;
         return this;
@@ -115,4 +153,23 @@ public class ShowTime implements Comparable<ShowTime> {
         }
         return 0;
     }
+
+    @JsonIgnore
+    public String getMessage() {
+        return getMessage(false);
+    }
+
+    @JsonIgnore
+    public String getMessage(boolean isNow) {
+        String result = "";
+        result += isNow ? "SHOWING" : date.format(DateTimeFormatter.ofPattern("EEEE"));
+        result += ";;" + (isNow ? "NOW" : startTime.format(DateTimeFormatter.ofPattern("h:mma")).toLowerCase());
+        result += ";;" + title;
+        result += ";;" + description1;
+        result += ";;" + description2;
+        System.out.println(result);
+        return result;
+    }
+
+
 }

@@ -24,9 +24,7 @@ import java.util.List;
 import java.util.Map;
 
 import static javax.sound.midi.ShortMessage.NOTE_ON;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.fail;
+import static org.junit.Assert.*;
 
 public class TestCase {
 
@@ -48,6 +46,7 @@ public class TestCase {
 
     protected void given_midi_device() {
         midi.openDevice();
+        ((MockMidiService)midi).clearLastCommand();
     }
 
     protected void then_last_http_call_was_$1(String call) {
@@ -88,7 +87,6 @@ public class TestCase {
 
     protected void when_date_is_$1(String date) {
         now.setDate(date);
-        scheduler.checkSchedule();
     }
 
     protected void when_time_is_$1(String time) {

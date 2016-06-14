@@ -39,6 +39,10 @@ public class HttpCue extends Cue {
     @Override
     public void stop() {}
 
+    /////////////
+    // Setters //
+    /////////////
+
     public void setHosts(List<String> hosts) {
         this.hosts = hosts;
     }
@@ -88,7 +92,6 @@ public class HttpCue extends Cue {
     // Getters //
     /////////////
 
-
     public List<String> getHosts() {
         return hosts;
     }
@@ -108,6 +111,10 @@ public class HttpCue extends Cue {
     public String getPayload() {
         return payload;
     }
+
+    ////////////////////
+    // Object Methods //
+    ////////////////////
 
     @Override
     public boolean equals(Object o) {

@@ -3,13 +3,13 @@ package net.amarantha.scheduler.scheduler;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 import net.amarantha.scheduler.cue.Cue;
-import net.amarantha.scheduler.cue.CueFactory;
 import net.amarantha.scheduler.exception.*;
 import net.amarantha.scheduler.utility.Now;
-import org.glassfish.grizzly.http.Method;
 
 import java.util.*;
 import java.util.Map.Entry;
+
+import static java.time.ZoneOffset.UTC;
 
 @Singleton
 public class Scheduler {
@@ -153,7 +153,10 @@ public class Scheduler {
             if ( schedule!=null ) {
                 MediaEvent event = schedule.getEvent(now.now());
                 if ( event!=null ) {
-                    return event;
+                    if ( !event.isPeriodic() || (now.epochMilli() - event.getLastFired()) >= event.getPeriod() ) {
+                        event.setLastFired(now.epochMilli());
+                        return event;
+                    }
                 }
             }
         }
@@ -205,6 +208,15 @@ public class Scheduler {
         return null;
     }
 
+    public List<MediaEvent> getAllEvents() {
+        List<MediaEvent> result = new ArrayList<>();
+        for ( Entry<Integer, Schedule> entry : schedules.entrySet() ) {
+            Schedule schedule = entry.getValue();
+            result.addAll(schedule.getUniqueEvents());
+        }
+        return result;
+    }
+
     public List<MediaEvent> getEventsByCue(Cue cue) {
         List<MediaEvent> result = new ArrayList<>();
         for ( Entry<Integer, Schedule> entry : schedules.entrySet() ) {
@@ -240,8 +252,12 @@ public class Scheduler {
     public void startup() {
         loadCues();
         loadSchedules();
+        for ( MediaEvent event : getAllEvents() ) {
+            event.setLastFired(now.epochMilli());
+        }
         startSchedulerLoop();
     }
+
 
     private void startSchedulerLoop() {
         timer = new Timer();
@@ -272,11 +288,18 @@ public class Scheduler {
             currentCue = null;
         } else {
             if ( !nextCue.equals(currentCue) ) {
+                boolean startNextCue = true;
                 if (currentCue != null) {
                     currentCue.stop();
+                    if ( currentCue.isSelfStopping() ) {
+                        startNextCue = false;
+                    }
                 }
                 currentCue = nextCue;
-                currentCue.start();
+                if ( startNextCue ) {
+                    System.out.println("Scheduler is Firing Cue: " + nextCue.getName());
+                    currentCue.start();
+                }
             }
         }
     }

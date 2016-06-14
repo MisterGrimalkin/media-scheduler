@@ -1,9 +1,7 @@
 package net.amarantha.scheduler.utility;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.inject.Singleton;
 
-import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.file.Files;

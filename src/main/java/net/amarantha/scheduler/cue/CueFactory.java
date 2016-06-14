@@ -45,4 +45,13 @@ public class CueFactory {
         return cue;
     }
 
+    public ShowTimeCue makeShowTimeCue(int id, String name, String... hosts) {
+        ShowTimeCue cue = injector.getInstance(ShowTimeCue.class);
+        cue.setId(id);
+        cue.setName(name);
+        cue.setSelfStopping(true);
+        cue.setHosts(Arrays.asList(hosts));
+        return cue;
+    }
+
 }

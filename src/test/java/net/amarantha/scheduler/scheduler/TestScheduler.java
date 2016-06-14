@@ -5,16 +5,7 @@ import com.googlecode.guicebehave.Story;
 import com.googlecode.guicebehave.StoryRunner;
 import net.amarantha.scheduler.TestCase;
 import net.amarantha.scheduler.TestModule;
-import net.amarantha.scheduler.cue.HttpCue;
-import net.amarantha.scheduler.cue.MidiCue;
-import net.amarantha.scheduler.exception.*;
-import net.amarantha.scheduler.http.MockHttpService;
-import net.amarantha.scheduler.midi.MockMidiService;
-import org.junit.After;
-import org.junit.Before;
 import org.junit.runner.RunWith;
-
-import static java.time.DayOfWeek.*;
 
 @RunWith(StoryRunner.class) @Modules(TestModule.class)
 public class TestScheduler extends TestCase {

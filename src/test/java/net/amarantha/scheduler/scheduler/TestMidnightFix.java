@@ -5,10 +5,7 @@ import com.googlecode.guicebehave.Story;
 import com.googlecode.guicebehave.StoryRunner;
 import net.amarantha.scheduler.TestCase;
 import net.amarantha.scheduler.TestModule;
-import net.amarantha.scheduler.exception.ScheduleConflictException;
 import org.junit.runner.RunWith;
-
-import static java.time.DayOfWeek.*;
 
 @RunWith(StoryRunner.class) @Modules(TestModule.class)
 public class TestMidnightFix extends TestCase {

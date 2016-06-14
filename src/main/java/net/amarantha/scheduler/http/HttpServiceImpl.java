@@ -55,6 +55,7 @@ public class HttpServiceImpl implements HttpService {
         try {
             response = getEndpoint(host, path, params).post(Entity.entity(payload, MediaType.TEXT_PLAIN));
             result = response.readEntity(String.class);
+            System.out.println(result);
         } catch ( NoRouteToHostException | ConnectException e ) {
             e.printStackTrace();
         } finally {

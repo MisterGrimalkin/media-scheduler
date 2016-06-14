@@ -1,12 +1,11 @@
 package net.amarantha.scheduler.scheduler;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.google.inject.Singleton;
 import net.amarantha.scheduler.cue.Cue;
 
-import java.io.IOException;
-import java.time.LocalDate;
-import java.util.*;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Set;
 
 @Singleton
 public class JsonEncoderMock extends JsonEncoderImpl {

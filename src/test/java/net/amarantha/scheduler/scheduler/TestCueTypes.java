@@ -18,7 +18,7 @@ public class TestCueTypes extends TestCase {
     @Story
     public void test() {
 
-        given_midi_device();
+        given_the_services();
 
         when_start_scheduler();
         makeTestCues();

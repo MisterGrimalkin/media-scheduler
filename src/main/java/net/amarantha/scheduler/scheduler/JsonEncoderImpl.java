@@ -13,9 +13,11 @@ import com.google.inject.Singleton;
 import net.amarantha.scheduler.cue.Cue;
 import net.amarantha.scheduler.cue.HttpCue;
 import net.amarantha.scheduler.cue.MidiCue;
+import net.amarantha.scheduler.cue.ShowTimeCue;
 import net.amarantha.scheduler.exception.ScheduleConflictException;
 import net.amarantha.scheduler.http.Param;
 import net.amarantha.scheduler.midi.MidiCommand;
+import net.amarantha.scheduler.showtime.ShowTime;
 import net.amarantha.scheduler.utility.FileService;
 import org.codehaus.jettison.json.JSONArray;
 import org.codehaus.jettison.json.JSONException;
@@ -138,7 +140,9 @@ public class JsonEncoderImpl implements JsonEncoder {
                 json()
                         .put("class", cue.getClass().getSimpleName())
                         .put("id", cue.getId())
-                        .put("name", cue.getName());
+                        .put("name", cue.getName())
+                        .put("selfStopping", cue.isSelfStopping())
+                        ;
 
         if (cue instanceof HttpCue) {
             HttpCue httpCue = (HttpCue) cue;
@@ -148,21 +152,28 @@ public class JsonEncoderImpl implements JsonEncoder {
                     .put("method", httpCue.getMethod())
                     .put("hosts",
                             jsonArray().from(httpCue.getHosts(), (host) ->
-                                    json().put("ip", host)
+                                json().put("ip", host)
                             ))
                     .put("params",
                             jsonArray().from(httpCue.getParams(), (param) ->
-                                    json().put("name", param.getName())
-                                            .put("value", param.getValue())
+                                json().put("name", param.getName())
+                                .put("value", param.getValue())
                             ));
 
         } else if ( cue instanceof MidiCue ) {
-            MidiCommand command = ((MidiCue)cue).getCommand();
+            MidiCommand command = ((MidiCue) cue).getCommand();
             cueJson
                     .put("command", command.getCommand())
                     .put("channel", command.getChannel())
                     .put("data1", command.getData1())
                     .put("data2", command.getData2());
+
+        } else if ( cue instanceof ShowTimeCue ) {
+            ShowTimeCue showTimeCue = (ShowTimeCue)cue;
+            cueJson.put("hosts",
+                    jsonArray().from(showTimeCue.getHosts(), (host) ->
+                            json().put("ip", host)
+                    ));
         }
 
         return cueJson;
@@ -197,6 +208,7 @@ public class JsonEncoderImpl implements JsonEncoder {
         Cue cue = injector.getInstance(cueClass);
         cue.setId(cueObj.getInt("id"));
         cue.setName(cueObj.getString("name"));
+        cue.setSelfStopping(cueObj.getBoolean("selfStopping"));
         if ( cue instanceof HttpCue ) {
             HttpCue httpCue = (HttpCue)cue;
             httpCue.setPath(cueObj.getString("path"));
@@ -220,6 +232,15 @@ public class JsonEncoderImpl implements JsonEncoder {
             Integer data1 = cueObj.getInt("data1");
             Integer data2 = cueObj.getInt("data2");
             midiCue.setCommand(new MidiCommand(command, channel+1, data1, data2));
+
+        } else if ( cue instanceof ShowTimeCue ) {
+            ShowTimeCue showTimeCue = (ShowTimeCue)cue;
+            JSONArray hostsArr = (JSONArray)cueObj.get("hosts");
+            for ( int j=0; j<hostsArr.length(); j++ ) {
+                JSONObject hostObj = hostsArr.getJSONObject(j);
+                showTimeCue.addHost(hostObj.getString("ip"));
+            }
+
         }
         return cue;
     }
@@ -244,7 +265,7 @@ public class JsonEncoderImpl implements JsonEncoder {
         return event;
     }
 
-    private ObjectMapper createMapper() {
+    public static ObjectMapper createMapper() {
         ObjectMapper mapper = new ObjectMapper();
         mapper.enable(SerializationFeature.INDENT_OUTPUT);
         mapper.disable(SerializationFeature.FAIL_ON_EMPTY_BEANS);

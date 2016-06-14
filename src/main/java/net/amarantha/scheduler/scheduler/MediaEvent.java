@@ -21,6 +21,10 @@ public class MediaEvent implements Comparable<MediaEvent> {
     private LocalTime startTime;
     private LocalTime endTime;
 
+    private boolean periodic = false;
+    private long period = 0;
+    private long lastFired = 0;
+
     private Set<DayOfWeek> repeatOn = new HashSet<>();
 
     @JsonCreator
@@ -99,6 +103,19 @@ public class MediaEvent implements Comparable<MediaEvent> {
         return endTime.toString();
     }
 
+    public boolean isPeriodic() {
+        return periodic;
+    }
+
+    public long getPeriod() {
+        return period;
+    }
+
+    @JsonIgnore
+    public long getLastFired() {
+        return lastFired;
+    }
+
 
     /////////////
     // Setters //
@@ -128,6 +145,17 @@ public class MediaEvent implements Comparable<MediaEvent> {
         this.repeatOn = repeatOn;
     }
 
+    public void setPeriodic(boolean periodic) {
+        this.periodic = periodic;
+    }
+
+    public void setPeriod(long period) {
+        this.period = period;
+    }
+
+    public void setLastFired(long lastFired) {
+        this.lastFired = lastFired;
+    }
 
     ////////////////
     // Comparison //

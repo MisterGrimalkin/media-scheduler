@@ -2,10 +2,10 @@ package net.amarantha.scheduler.device;
 
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
-import net.amarantha.scheduler.midi.MidiService;
-import net.amarantha.scheduler.midi.MidiCommand;
 import net.amarantha.scheduler.cue.Cue;
 import net.amarantha.scheduler.cue.MidiCue;
+import net.amarantha.scheduler.midi.MidiCommand;
+import net.amarantha.scheduler.midi.MidiService;
 import net.amarantha.scheduler.utility.PropertyManager;
 
 import static javax.sound.midi.ShortMessage.*;

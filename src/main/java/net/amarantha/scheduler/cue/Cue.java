@@ -4,6 +4,7 @@ public abstract class Cue {
 
     private int id;
     private String name;
+    private boolean selfStopping;
 
     //////////////
     // Abstract //
@@ -31,6 +32,14 @@ public abstract class Cue {
 
     public void setName(String name) {
         this.name = name;
+    }
+
+    public boolean isSelfStopping() {
+        return selfStopping;
+    }
+
+    public void setSelfStopping(boolean selfStopping) {
+        this.selfStopping = selfStopping;
     }
 
     @Override

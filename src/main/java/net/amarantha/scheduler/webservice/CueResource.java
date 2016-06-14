@@ -1,9 +1,9 @@
 package net.amarantha.scheduler.webservice;
 
 import com.google.inject.Inject;
+import net.amarantha.scheduler.cue.Cue;
 import net.amarantha.scheduler.exception.CueInUseException;
 import net.amarantha.scheduler.exception.DuplicateCueException;
-import net.amarantha.scheduler.cue.Cue;
 import net.amarantha.scheduler.scheduler.JsonEncoder;
 import net.amarantha.scheduler.scheduler.Scheduler;
 import org.codehaus.jettison.json.JSONException;

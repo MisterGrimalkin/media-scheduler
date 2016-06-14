@@ -6,6 +6,8 @@ import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.ZoneOffset;
 
+import static java.time.ZoneOffset.UTC;
+
 @Singleton
 public class Now {
 
@@ -14,6 +16,10 @@ public class Now {
             return LocalDateTime.now();
         }
         return LocalDateTime.ofEpochSecond(LocalDateTime.now().toEpochSecond(ZoneOffset.UTC) + offset, 0, ZoneOffset.UTC);
+    }
+
+    public long epochMilli() {
+        return now().toInstant(UTC).toEpochMilli();
     }
 
     public LocalDate date() {

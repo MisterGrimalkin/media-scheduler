@@ -1,25 +1,39 @@
 package net.amarantha.scheduler.showtime;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
+import net.amarantha.scheduler.scheduler.JsonEncoderImpl;
+import net.amarantha.scheduler.utility.FileService;
 import net.amarantha.scheduler.utility.Now;
 
+import java.io.IOException;
 import java.time.LocalDate;
 import java.time.LocalTime;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
+
+import static net.amarantha.scheduler.scheduler.JsonEncoderImpl.createMapper;
 
 @Singleton
 public class ShowTimeManager {
 
     @Inject private Now now;
+    @Inject private FileService files;
 
     private List<ShowTime> showTimes = new LinkedList<>();
-    private int futureCount = 1;
+    private int futureCount = 3;
+
+    private static int nextId = 1;
 
     public void addShow(ShowTime showTime) {
+        if ( showTime.getId()<=0 ) {
+            showTime.setId(nextId++);
+        } else {
+            nextId = Math.max(showTime.getId()+1, nextId);
+        }
         showTimes.add(showTime);
     }
 
@@ -62,6 +76,25 @@ public class ShowTimeManager {
 
         return futureShows;
     }
+
+    public void saveShows() {
+        try {
+            files.writeToFile("show-times.json", createMapper().writeValueAsString(showTimes));
+        } catch (JsonProcessingException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void loadShows() {
+        try {
+            showTimes = createMapper().readValue(files.readFromFile("show-times.json"), new TypeReference<List<ShowTime>>(){});
+        } catch (IOException e) {
+            e.printStackTrace();
+            saveShows();
+        }
+
+    }
+
 
 
     public void setFutureCount(int futureCount) {
