@@ -5,6 +5,8 @@ import com.google.inject.Inject;
 import net.amarantha.scheduler.scheduler.JsonEncoder;
 import net.amarantha.scheduler.scheduler.MediaEvent;
 import net.amarantha.scheduler.scheduler.Scheduler;
+import net.amarantha.scheduler.showtime.ShowTime;
+import net.amarantha.scheduler.showtime.ShowTimeManager;
 import net.amarantha.scheduler.utility.Now;
 
 import javax.ws.rs.*;
@@ -13,20 +15,55 @@ import javax.ws.rs.core.Response;
 import java.io.IOException;
 import java.time.LocalDate;
 
-@Path("schedule")
+@Path("/")
 public class ScheduleResource extends Resource {
 
     private static Now now;
     private static Scheduler scheduler;
     private static JsonEncoder json;
+    private static ShowTimeManager showTimeManager;
 
     public ScheduleResource() {}
 
     @Inject
-    public ScheduleResource(Now now, Scheduler scheduler, JsonEncoder json) {
+    public ScheduleResource(Now now, Scheduler scheduler, JsonEncoder json, ShowTimeManager showTimeManager) {
         ScheduleResource.now = now;
         ScheduleResource.scheduler = scheduler;
         ScheduleResource.json = json;
+        ScheduleResource.showTimeManager = showTimeManager;
+    }
+
+    @GET
+    @Path("showtimes")
+    public Response getShowTimes() {
+        return ok(showTimeManager.encodeShows());
+    }
+
+    @GET
+    @Path("showtime")
+    public Response getShowTime(@QueryParam("id") Integer id) {
+        return ok(showTimeManager.encodeShow(id));
+    }
+
+    @POST
+    @Path("showtime/delete")
+    public Response deleteShowTime(@QueryParam("id") Integer id) {
+        if ( showTimeManager.deleteShow(id) ) {
+            return ok("Deleted");
+        } else {
+            return error("Not found");
+        }
+    }
+
+    @POST
+    @Path("showtime/update")
+    public Response updateShowTime(String json) {
+        ShowTime showTime = showTimeManager.decodeShow(json);
+        if ( showTime.getId()>0 ) {
+            showTimeManager.deleteShow(showTime.getId());
+        }
+        showTimeManager.addShow(showTime);
+        return ok("Done");
     }
 
     @GET

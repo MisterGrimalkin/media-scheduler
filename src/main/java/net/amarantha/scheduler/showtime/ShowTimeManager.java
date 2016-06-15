@@ -77,27 +77,76 @@ public class ShowTimeManager {
         return futureShows;
     }
 
-    public void saveShows() {
+    public ShowTime getShowTime(int id) {
+        for ( ShowTime showTime : showTimes ) {
+            if ( showTime.getId()==id ) {
+                return showTime;
+            }
+        }
+        return null;
+    }
+
+    public String encodeShow(int id) {
+        ShowTime showTime = getShowTime(id);
+        if ( showTime != null ) {
+            try {
+                return createMapper().writeValueAsString(showTime);
+            } catch (JsonProcessingException e) {
+                e.printStackTrace();
+            }
+        }
+        return null;
+    }
+
+    public String encodeShows() {
+        Collections.sort(showTimes);
         try {
-            files.writeToFile("show-times.json", createMapper().writeValueAsString(showTimes));
+            return createMapper().writeValueAsString(showTimes);
         } catch (JsonProcessingException e) {
             e.printStackTrace();
         }
+        return null;
+    }
+
+    public void saveShows() {
+        files.writeToFile("show-times.json", encodeShows());
     }
 
     public void loadShows() {
+        showTimes = decodeShows(files.readFromFile("show-times.json"));
+    }
+
+    public List<ShowTime> decodeShows(String json) {
         try {
-            showTimes = createMapper().readValue(files.readFromFile("show-times.json"), new TypeReference<List<ShowTime>>(){});
+            return createMapper().readValue(json, new TypeReference<List<ShowTime>>(){});
         } catch (IOException e) {
             e.printStackTrace();
             saveShows();
         }
+        return null;
+    }
 
+    public ShowTime decodeShow(String json) {
+        try {
+            return createMapper().readValue(json, new TypeReference<ShowTime>(){});
+        } catch (IOException e) {
+            e.printStackTrace();
+            saveShows();
+        }
+        return null;
     }
 
 
 
     public void setFutureCount(int futureCount) {
         this.futureCount = futureCount;
+    }
+
+    public boolean deleteShow(int id) {
+        ShowTime showTime = getShowTime(id);
+        if ( showTime!=null ) {
+            return showTimes.remove(showTime);
+        }
+        return false;
     }
 }
