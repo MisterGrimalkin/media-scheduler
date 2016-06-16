@@ -170,12 +170,8 @@ public class JsonEncoderImpl implements JsonEncoder {
 
         } else if ( cue instanceof ShowTimeCue ) {
             ShowTimeCue showTimeCue = (ShowTimeCue)cue;
-            cueJson.put("hosts",
-                    jsonArray().from(showTimeCue.getHosts(), (host) ->
-                            json().put("ip", host)
-                    ));
+            cueJson.put("hostGroup", showTimeCue.getHostGroup());
         }
-
         return cueJson;
     }
 
@@ -235,12 +231,7 @@ public class JsonEncoderImpl implements JsonEncoder {
 
         } else if ( cue instanceof ShowTimeCue ) {
             ShowTimeCue showTimeCue = (ShowTimeCue)cue;
-            JSONArray hostsArr = (JSONArray)cueObj.get("hosts");
-            for ( int j=0; j<hostsArr.length(); j++ ) {
-                JSONObject hostObj = hostsArr.getJSONObject(j);
-                showTimeCue.addHost(hostObj.getString("ip"));
-            }
-
+            showTimeCue.setHostGroup(cueObj.getString("hostGroup"));
         }
         return cue;
     }

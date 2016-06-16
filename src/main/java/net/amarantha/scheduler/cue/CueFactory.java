@@ -45,12 +45,12 @@ public class CueFactory {
         return cue;
     }
 
-    public ShowTimeCue makeShowTimeCue(int id, String name, String... hosts) {
+    public ShowTimeCue makeShowTimeCue(int id, String name, String hostGroup) {
         ShowTimeCue cue = injector.getInstance(ShowTimeCue.class);
         cue.setId(id);
         cue.setName(name);
         cue.setSelfStopping(true);
-        cue.setHosts(Arrays.asList(hosts));
+        cue.setHostGroup(hostGroup);
         return cue;
     }
 

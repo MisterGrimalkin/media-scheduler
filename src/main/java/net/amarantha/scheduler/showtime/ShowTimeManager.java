@@ -11,6 +11,7 @@ import net.amarantha.scheduler.utility.Now;
 import java.io.IOException;
 import java.time.LocalDate;
 import java.time.LocalTime;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
@@ -35,6 +36,7 @@ public class ShowTimeManager {
             nextId = Math.max(showTime.getId()+1, nextId);
         }
         showTimes.add(showTime);
+        saveShows();
     }
 
     public List<ShowTime> getShows() {
@@ -118,12 +120,15 @@ public class ShowTimeManager {
 
     public List<ShowTime> decodeShows(String json) {
         try {
-            return createMapper().readValue(json, new TypeReference<List<ShowTime>>(){});
-        } catch (IOException e) {
+            List<ShowTime> shows = createMapper().readValue(json, new TypeReference<List<ShowTime>>(){});
+            if ( shows!=null ) {
+                return shows;
+            }
+        } catch (Exception e) {
             e.printStackTrace();
             saveShows();
         }
-        return null;
+        return new ArrayList<>();
     }
 
     public ShowTime decodeShow(String json) {
@@ -144,9 +149,11 @@ public class ShowTimeManager {
 
     public boolean deleteShow(int id) {
         ShowTime showTime = getShowTime(id);
+        boolean removed = false;
         if ( showTime!=null ) {
-            return showTimes.remove(showTime);
+            removed = showTimes.remove(showTime);
+            saveShows();
         }
-        return false;
+        return removed;
     }
 }

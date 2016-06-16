@@ -281,7 +281,6 @@ public class Scheduler {
     public void checkSchedule() {
         MediaEvent currentEvent = getCurrentEvent();
         Cue nextCue = ( currentEvent==null ? null : getCue(currentEvent.getCueId()) );
-        System.out.println(nextCue);
         if ( nextCue == null ) {
             if ( currentCue !=null && stopAll != null ) {
                 stopAll.start();

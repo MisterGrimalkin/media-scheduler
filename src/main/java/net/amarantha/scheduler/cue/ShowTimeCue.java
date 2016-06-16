@@ -1,29 +1,29 @@
 package net.amarantha.scheduler.cue;
 
 import com.google.inject.Inject;
+import net.amarantha.scheduler.http.HostManager;
 import net.amarantha.scheduler.http.HttpService;
 import net.amarantha.scheduler.showtime.ShowTime;
 import net.amarantha.scheduler.showtime.ShowTimeManager;
 
-import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 
 public class ShowTimeCue extends Cue {
 
-    @Inject private ShowTimeManager manager;
+    @Inject private ShowTimeManager showTimeManager;
     @Inject private HttpService http;
+    @Inject private HostManager hostManager;
 
-    private List<String> hosts = new ArrayList<>();
-
+    private String hostGroup = "";
     private String lastEntireMessage = "";
 
     @Override
     public void start() {
         System.out.println("Updating ShowTimes...");
         String entireMessage = "";
-        ShowTime currentShow = manager.getCurrentShow();
-        List<ShowTime> showTimes = manager.getFutureShows();
+        ShowTime currentShow = showTimeManager.getCurrentShow();
+        List<ShowTime> showTimes = showTimeManager.getFutureShows();
         List<String> messages = new LinkedList<>();
         if ( currentShow!=null ) {
             String msg = currentShow.getMessage(true);
@@ -36,13 +36,16 @@ public class ShowTimeCue extends Cue {
             messages.add(msg);
         }
         if ( !lastEntireMessage.equals(entireMessage) ) {
-            for ( String host : hosts ) {
-                http.post(host, "lightboard/scene/events/group/events/clear", null);
-                for ( String message : messages ) {
-                    http.post(host, "lightboard/scene/events/group/events/add", message);
+            List<String> hosts = hostManager.getHosts(hostGroup);
+            if ( hosts!=null ) {
+                for (String host : hosts) {
+                    http.post(host, "lightboard/scene/events/group/events/clear", null);
+                    for (String message : messages) {
+                        http.post(host, "lightboard/scene/events/group/events/add", message);
+                    }
+                    http.post(host, "lightboard/scene/reload", null);
+                    lastEntireMessage = entireMessage;
                 }
-                http.post(host, "lightboard/scene/reload", null);
-                lastEntireMessage = entireMessage;
             }
         }
     }
@@ -52,16 +55,11 @@ public class ShowTimeCue extends Cue {
 
     }
 
-    public void setHosts(List<String> hosts) {
-        System.out.println("SETTING HOSTS");
-        this.hosts = hosts;
+    public void setHostGroup(String hostGroup) {
+        this.hostGroup = hostGroup;
     }
 
-    public void addHost(String host) {
-        hosts.add(host);
-    }
-
-    public List<String> getHosts() {
-        return hosts;
+    public String getHostGroup() {
+        return hostGroup;
     }
 }

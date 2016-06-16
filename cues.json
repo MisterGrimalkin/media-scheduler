@@ -1,1 +1,65 @@
-{"cues":[{"class":"HttpCue","id":10,"name":"Logo","selfStopping":true,"path":"lightboard\/scene\/logo\/load","payload":"","method":"POST","hosts":[{"ip":"192.168.1.73:8001"}],"params":[]},{"class":"HttpCue","id":11,"name":"Messages","selfStopping":true,"path":"lightboard\/scene\/onezone\/load","payload":"","method":"POST","hosts":[{"ip":"192.168.1.73:8001"}],"params":[]},{"class":"ShowTimeCue","id":1,"name":"ShowTimeUpdater","selfStopping":true,"hosts":[{"ip":"192.168.1.73:8001"}]},{"class":"HttpCue","id":2,"name":"Events","selfStopping":false,"path":"lightboard\/scene\/events\/load","payload":"","method":"POST","hosts":[{"ip":"192.168.1.73:8001"}],"params":[]}]}
+{
+  "cues": [
+    {
+      "class": "HttpCue",
+      "id": 11,
+      "name": "Messages",
+      "selfStopping": true,
+      "path": "lightboard\/scene\/onezone\/load",
+      "payload": "",
+      "method": "POST",
+      "hosts": [
+        {
+          "ip": "192.168.1.73:8001"
+        },
+        {
+          "ip": "192.168.1.74:8001"
+        }
+      ],
+      "params": []
+    },
+    {
+      "class": "HttpCue",
+      "id": 2,
+      "name": "Events",
+      "selfStopping": false,
+      "path": "lightboard\/scene\/events\/load",
+      "payload": "",
+      "method": "POST",
+      "hosts": [
+        {
+          "ip": "192.168.1.73:8001"
+        },
+        {
+          "ip": "192.168.1.74:8001"
+        }
+      ],
+      "params": []
+    },
+    {
+      "class": "ShowTimeCue",
+      "id": 1,
+      "name": "ShowTimeUpdater",
+      "selfStopping": true,
+      "hostGroup": "events"
+    },
+    {
+      "class": "HttpCue",
+      "id": 10,
+      "name": "Logo",
+      "selfStopping": true,
+      "path": "lightboard\/scene\/logo\/load",
+      "payload": "",
+      "method": "POST",
+      "hosts": [
+        {
+          "ip": "192.168.1.73:8001"
+        },
+        {
+          "ip": "192.168.1.74:8001"
+        }
+      ],
+      "params": []
+    }
+  ]
+}
