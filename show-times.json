@@ -1,0 +1,31 @@
+[ {
+  "id" : 1,
+  "title" : "Rain, Rain, Rain!!!!",
+  "description1" : "Will water ever stop falling",
+  "description2" : "from the fucking sky",
+  "alwaysShowOnDay" : false,
+  "alwaysShow" : false,
+  "date" : "2016-06-17",
+  "startTime" : "17:30",
+  "endTime" : "18:00"
+}, {
+  "id" : 1,
+  "title" : "Dinner Time",
+  "description1" : "Time to eat",
+  "description2" : "Some hopefully tasty food",
+  "alwaysShowOnDay" : false,
+  "alwaysShow" : false,
+  "date" : "2016-06-17",
+  "startTime" : "19:00",
+  "endTime" : "20:00"
+}, {
+  "id" : 2,
+  "title" : "Night Time",
+  "description1" : "We should not work now",
+  "description2" : "but we probably will",
+  "alwaysShowOnDay" : false,
+  "alwaysShow" : false,
+  "date" : "2016-06-17",
+  "startTime" : "20:00",
+  "endTime" : "23:00"
+} ]
