@@ -2,7 +2,6 @@ package net.amarantha.scheduler.webservice;
 
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
-import net.amarantha.scheduler.utility.PropertyManager;
 import net.amarantha.scheduler.utility.SchedulerProperties;
 import org.glassfish.grizzly.http.server.HttpServer;
 import org.glassfish.jersey.grizzly2.httpserver.GrizzlyHttpServerFactory;
@@ -18,6 +17,7 @@ public class WebService {
     @Inject private ControlResource controlResource;
     @Inject private CueResource cueResource;
     @Inject private ScheduleResource scheduleResource;
+    @Inject private ShowerResource showerResource;
 
     @Inject private SchedulerProperties props;
 
@@ -35,10 +35,13 @@ public class WebService {
 
         System.out.println("Web Service Online @ " + fullUri);
 
+        showerResource.startMonitor();
+
         return server;
     }
 
     public void stopWebService() {
+        showerResource.stopMonitor();
         if ( server!=null ) {
             server.shutdown();
         }

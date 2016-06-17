@@ -167,7 +167,7 @@ public class ShowTime implements Comparable<ShowTime> {
         result += ";;" + title;
         result += ";;" + description1;
         result += ";;" + description2;
-        System.out.println(result);
+//        System.out.println(result);
         return result;
     }
 

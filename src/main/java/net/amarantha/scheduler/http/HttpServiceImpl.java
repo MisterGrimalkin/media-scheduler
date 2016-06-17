@@ -1,6 +1,7 @@
 package net.amarantha.scheduler.http;
 
 import com.google.inject.Singleton;
+import org.glassfish.jersey.client.ClientProperties;
 
 import javax.ws.rs.client.*;
 import javax.ws.rs.core.MediaType;
@@ -9,6 +10,8 @@ import java.net.ConnectException;
 import java.net.NoRouteToHostException;
 import java.util.Timer;
 import java.util.TimerTask;
+
+import static org.glassfish.jersey.client.ClientProperties.*;
 
 @Singleton
 public class HttpServiceImpl implements HttpService {
@@ -20,8 +23,8 @@ public class HttpServiceImpl implements HttpService {
         try {
             response = getEndpoint(host, path, params).get();
             result = response.readEntity(String.class);
-        } catch ( NoRouteToHostException | ConnectException e ) {
-            e.printStackTrace();
+        } catch ( Exception e ) {
+            System.out.println(host + ": " + e.getMessage());
         } finally {
             if ( response!=null ) response.close();
         }
@@ -37,7 +40,7 @@ public class HttpServiceImpl implements HttpService {
                 try {
                     response = getEndpoint(host, path, params).get();
                 } catch ( Exception e ) {
-                    e.printStackTrace();
+                    System.out.println(host + ": " + e.getMessage());
                 } finally {
                     if ( response!=null ) response.close();
                 }
@@ -55,9 +58,8 @@ public class HttpServiceImpl implements HttpService {
         try {
             response = getEndpoint(host, path, params).post(Entity.entity(payload, MediaType.TEXT_PLAIN));
             result = response.readEntity(String.class);
-            System.out.println(result);
-        } catch ( NoRouteToHostException | ConnectException e ) {
-            e.printStackTrace();
+        } catch ( Exception e ) {
+            System.out.println(host + ": " + e.getMessage());
         } finally {
             if ( response!=null ) response.close();
         }
@@ -73,7 +75,7 @@ public class HttpServiceImpl implements HttpService {
                 try {
                     response = getEndpoint(host, path, params).post(Entity.entity(payload, MediaType.TEXT_PLAIN));
                 } catch ( Exception e ) {
-                    e.printStackTrace();
+                    System.out.println(host + ": " + e.getMessage());
                 } finally {
                     if ( response!=null ) response.close();
                 }
@@ -86,6 +88,7 @@ public class HttpServiceImpl implements HttpService {
 
     private Invocation.Builder getEndpoint(String host, String path, Param... params) throws NoRouteToHostException, ConnectException {
         Client client = ClientBuilder.newClient();
+        client.property(CONNECT_TIMEOUT, 5000);
         WebTarget endpoint = client.target("http://"+host).path(path);
         for ( Param param : params ) {
             endpoint.queryParam(param.getName(), param.getValue());

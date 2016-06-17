@@ -4,6 +4,8 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
+import net.amarantha.scheduler.http.HostManager;
+import net.amarantha.scheduler.http.HttpService;
 import net.amarantha.scheduler.scheduler.JsonEncoderImpl;
 import net.amarantha.scheduler.utility.FileService;
 import net.amarantha.scheduler.utility.Now;
@@ -11,10 +13,7 @@ import net.amarantha.scheduler.utility.Now;
 import java.io.IOException;
 import java.time.LocalDate;
 import java.time.LocalTime;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.LinkedList;
-import java.util.List;
+import java.util.*;
 
 import static net.amarantha.scheduler.scheduler.JsonEncoderImpl.createMapper;
 
@@ -23,11 +22,62 @@ public class ShowTimeManager {
 
     @Inject private Now now;
     @Inject private FileService files;
+    @Inject private HostManager hostManager;
+    @Inject private HttpService http;
 
     private List<ShowTime> showTimes = new LinkedList<>();
     private int futureCount = 3;
 
     private static int nextId = 1;
+
+    private Timer timer = new Timer();
+
+    public void start() {
+        timer.schedule(new TimerTask() {
+            @Override
+            public void run() {
+                fire();
+            }
+        }, 0, 5000);
+    }
+
+    public void stop() {
+        timer.cancel();
+    }
+
+    private String lastEntireMessage = "";
+
+    private void fire() {
+//        System.out.println("Updating ShowTimes...");
+        String entireMessage = "";
+        ShowTime currentShow = getCurrentShow();
+        List<ShowTime> showTimes = getFutureShows();
+        List<String> messages = new LinkedList<>();
+        if ( currentShow!=null ) {
+            String msg = currentShow.getMessage(true);
+            entireMessage += msg;
+            messages.add(msg);
+        }
+        for ( ShowTime showTime : showTimes ) {
+            String msg = showTime.getMessage();
+            entireMessage += msg;
+            messages.add(msg);
+        }
+        if ( !lastEntireMessage.equals(entireMessage) ) {
+            List<String> hosts = hostManager.getHosts("events");
+            if ( hosts!=null ) {
+                for (String host : hosts) {
+                    http.post(host, "lightboard/scene/events/group/events/clear", null);
+                    for (String message : messages) {
+                        http.post(host, "lightboard/scene/events/group/events/add", message);
+                    }
+                    http.post(host, "lightboard/scene/reload", null);
+                    lastEntireMessage = entireMessage;
+                }
+            }
+        }
+
+    }
 
     public void addShow(ShowTime showTime) {
         if ( showTime.getId()<=0 ) {

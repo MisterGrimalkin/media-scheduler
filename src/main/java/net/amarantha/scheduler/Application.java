@@ -10,6 +10,7 @@ import net.amarantha.scheduler.exception.ScheduleConflictException;
 import net.amarantha.scheduler.http.HostManager;
 import net.amarantha.scheduler.scheduler.MediaEvent;
 import net.amarantha.scheduler.scheduler.Scheduler;
+import net.amarantha.scheduler.showtime.LogoPusher;
 import net.amarantha.scheduler.showtime.ShowTime;
 import net.amarantha.scheduler.showtime.ShowTimeManager;
 import net.amarantha.scheduler.webservice.WebService;
@@ -30,17 +31,23 @@ public class Application {
 
     @Inject private CueFactory cueFactory;
 
+    @Inject private LogoPusher logo;
+
     @Inject private HostManager hostManager;
 
     public void startApplication() {
 
-        showTimeManager.loadShows();
+        System.out.println("Starting Scheduler...");
+
         hostManager.loadHosts();
 
-        System.out.println("Starting Scheduler...");
+        showTimeManager.loadShows();
+        showTimeManager.start();
+
 
         scheduler.startup();
         webService.startWebService();
+        logo.start();
 
         System.out.println("Media Scheduler is online\nPress ENTER to quit...");
         Scanner sc = new Scanner(System.in);
@@ -49,8 +56,11 @@ public class Application {
         System.out.println("Shutting Down...");
         scheduler.shutdown();
         webService.stopWebService();
+        logo.stop();
 
         System.out.println("Goodbye");
+
+        System.exit(0);
 
     }
 
