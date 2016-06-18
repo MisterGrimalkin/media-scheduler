@@ -33,12 +33,14 @@ public class ShowTimeManager {
     private Timer timer = new Timer();
 
     public void start() {
+        loadShows();
         timer.schedule(new TimerTask() {
             @Override
             public void run() {
                 fire();
             }
         }, 0, 5000);
+        System.out.println("ShowTime Manager online");
     }
 
     public void stop() {

@@ -33,7 +33,7 @@ public class HostManager {
     }
 
     public void saveHosts() {
-        fileService.writeToFile("hosts.json", encodeHosts());
+        fileService.writeToFile("data/hosts.json", encodeHosts());
     }
 
     public String encodeHosts() {
@@ -46,7 +46,14 @@ public class HostManager {
     }
 
     public void loadHosts() {
-        allHosts = decodeHosts(fileService.readFromFile("hosts.json"));
+        System.out.println("Loading Hosts...");
+        allHosts = decodeHosts(fileService.readFromFile("data/hosts.json"));
+        for ( Map.Entry<String, List<String>> entry : allHosts.entrySet() ) {
+            System.out.println(entry.getKey());
+            for ( String h : entry.getValue() ) {
+                System.out.println("\t"+h);
+            }
+        }
     }
 
     public Map<String, List<String>> decodeHosts(String json) {

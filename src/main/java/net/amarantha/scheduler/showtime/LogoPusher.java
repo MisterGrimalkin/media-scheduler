@@ -22,27 +22,30 @@ public class LogoPusher {
             public void run() {
                 fire();
             }
-        }, 0, 120000);
+        }, 7000, 60000);
+        System.out.println("LogoPusher Active");
     }
 
     public void stop() {
         timer.cancel();
     }
 
-    private boolean lastWasLogo = false;
+    private boolean logo = true;
 
     private void fire() {
-        if ( lastWasLogo ) {
+        if (logo) {
+            System.out.println("Logo -->");
             fireScene("greenpeace-logo");
         } else {
+            System.out.println("Flash Message -->");
             fireScene("single-message");
         }
-        lastWasLogo = !lastWasLogo;
+        logo = !logo;
     }
 
     private void fireScene(String scene) {
-//        System.out.println("Firing "+scene);
         for ( String host : hosts.getHosts("logo") ) {
+            System.out.println("--> "+host);
             http.postAsync(null, host, "lightboard/scene/"+scene+"/load", "");
         }
     }

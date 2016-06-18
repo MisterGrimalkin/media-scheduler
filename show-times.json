@@ -1,31 +1,51 @@
 [ {
   "id" : 1,
-  "title" : "Rain, Rain, Rain!!!!",
-  "description1" : "Will water ever stop falling",
-  "description2" : "from the fucking sky",
+  "title" : "Make Stuff!",
+  "description1" : "Make it work...",
+  "description2" : "Then make it pretty",
   "alwaysShowOnDay" : false,
   "alwaysShow" : false,
-  "date" : "2016-06-17",
-  "startTime" : "17:30",
-  "endTime" : "18:00"
+  "date" : "2016-06-18",
+  "startTime" : "09:00",
+  "endTime" : "13:00"
 }, {
-  "id" : 1,
-  "title" : "Dinner Time",
-  "description1" : "Time to eat",
-  "description2" : "Some hopefully tasty food",
+  "id" : 2,
+  "title" : "Eat!",
+  "description1" : "Keep up your energy",
+  "description2" : "and stuff",
   "alwaysShowOnDay" : false,
   "alwaysShow" : false,
-  "date" : "2016-06-17",
+  "date" : "2016-06-18",
+  "startTime" : "13:00",
+  "endTime" : "14:00"
+}, {
+  "id" : 3,
+  "title" : "Enforced Tea Break",
+  "description1" : "Compliance is assumed",
+  "description2" : "{red}Resistance is Futile",
+  "alwaysShowOnDay" : false,
+  "alwaysShow" : false,
+  "date" : "2016-06-18",
+  "startTime" : "16:00",
+  "endTime" : "16:30"
+}, {
+  "id" : 4,
+  "title" : "Dinner Time",
+  "description1" : "Food glorious food",
+  "description2" : "Probably quite nice",
+  "alwaysShowOnDay" : false,
+  "alwaysShow" : false,
+  "date" : "2016-06-18",
   "startTime" : "19:00",
   "endTime" : "20:00"
 }, {
-  "id" : 2,
-  "title" : "Night Time",
-  "description1" : "We should not work now",
-  "description2" : "but we probably will",
+  "id" : 5,
+  "title" : "Work Time's Over!",
+  "description1" : "Play time begins",
+  "description2" : "but don't be late for work!",
   "alwaysShowOnDay" : false,
   "alwaysShow" : false,
-  "date" : "2016-06-17",
+  "date" : "2016-06-18",
   "startTime" : "20:00",
   "endTime" : "23:00"
 } ]

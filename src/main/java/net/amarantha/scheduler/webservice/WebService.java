@@ -18,6 +18,7 @@ public class WebService {
     @Inject private CueResource cueResource;
     @Inject private ScheduleResource scheduleResource;
     @Inject private ShowerResource showerResource;
+    @Inject private ScrollerResource scrollerResource;
 
     @Inject private SchedulerProperties props;
 
@@ -36,6 +37,7 @@ public class WebService {
         System.out.println("Web Service Online @ " + fullUri);
 
         showerResource.startMonitor();
+        scrollerResource.setup();
 
         return server;
     }
