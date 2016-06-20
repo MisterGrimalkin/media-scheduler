@@ -15,12 +15,15 @@ public class LogoPusher {
     @Inject private HostManager hosts;
 
     private Timer timer = new Timer();
+    private boolean paused = false;
 
     public void start() {
         timer.schedule(new TimerTask() {
             @Override
             public void run() {
-                fire();
+                if ( !paused ) {
+                    fire();
+                }
             }
         }, 7000, 60000);
         System.out.println("LogoPusher Active");
@@ -50,4 +53,11 @@ public class LogoPusher {
         }
     }
 
+    public void pause() {
+        paused = true;
+    }
+
+    public void resume() {
+        paused = false;
+    }
 }

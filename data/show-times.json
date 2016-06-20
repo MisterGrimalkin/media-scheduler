@@ -5,17 +5,17 @@
   "description2" : "Then make it pretty",
   "alwaysShowOnDay" : false,
   "alwaysShow" : false,
-  "date" : "2016-06-18",
+  "date" : "2016-06-19",
   "startTime" : "09:00",
   "endTime" : "13:00"
 }, {
   "id" : 2,
-  "title" : "Eat!",
+  "title" : "Eat! Yum!",
   "description1" : "Keep up your energy",
-  "description2" : "and stuff",
+  "description2" : "and tasty things",
   "alwaysShowOnDay" : false,
   "alwaysShow" : false,
-  "date" : "2016-06-18",
+  "date" : "2016-06-19",
   "startTime" : "13:00",
   "endTime" : "14:00"
 }, {
@@ -25,7 +25,7 @@
   "description2" : "{red}Resistance is Futile",
   "alwaysShowOnDay" : false,
   "alwaysShow" : false,
-  "date" : "2016-06-18",
+  "date" : "2016-06-19",
   "startTime" : "16:00",
   "endTime" : "16:30"
 }, {
@@ -35,7 +35,7 @@
   "description2" : "Probably quite nice",
   "alwaysShowOnDay" : false,
   "alwaysShow" : false,
-  "date" : "2016-06-18",
+  "date" : "2016-06-19",
   "startTime" : "19:00",
   "endTime" : "20:00"
 }, {
@@ -45,7 +45,7 @@
   "description2" : "but don't be late for work!",
   "alwaysShowOnDay" : false,
   "alwaysShow" : false,
-  "date" : "2016-06-18",
+  "date" : "2016-06-19",
   "startTime" : "20:00",
   "endTime" : "23:00"
 } ]

@@ -129,7 +129,7 @@
                 <version>2.6</version>
                 <executions>
                     <execution>
-                        <id>copy-resources</id>
+                        <id>copy-scripts</id>
                         <phase>validate</phase>
                         <goals>
                             <goal>copy-resources</goal>
@@ -138,7 +138,23 @@
                             <outputDirectory>${basedir}/target/scheduler/scripts</outputDirectory>
                             <resources>
                                 <resource>
-                                    <directory>${basedir}/target/scheduler</directory>
+                                    <directory>${basedir}/scripts</directory>
+                                    <filtering>true</filtering>
+                                </resource>
+                            </resources>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>copy-data</id>
+                        <phase>validate</phase>
+                        <goals>
+                            <goal>copy-resources</goal>
+                        </goals>
+                        <configuration>
+                            <outputDirectory>${basedir}/target/scheduler/data</outputDirectory>
+                            <resources>
+                                <resource>
+                                    <directory>${basedir}/data</directory>
                                     <filtering>true</filtering>
                                 </resource>
                             </resources>
@@ -179,7 +195,6 @@
                             <Class-Path>.</Class-Path>
                         </manifestEntries>
                     </archive>
-
                     <finalName>scheduler/scheduler</finalName>
                 </configuration>
             </plugin>

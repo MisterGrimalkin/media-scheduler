@@ -18,7 +18,11 @@ public class HostManager {
     private Map<String, List<String>> allHosts = new HashMap<>();
 
     public List<String> getHosts(String groupName) {
-        return allHosts.get(groupName);
+        List<String> result = new ArrayList<>();
+        if ( allHosts.containsKey(groupName) ) {
+            result = allHosts.get(groupName);
+        }
+        return result;
     }
 
     public HostManager addHosts(String groupName, String... hosts) {

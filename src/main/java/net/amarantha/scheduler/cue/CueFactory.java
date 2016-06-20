@@ -2,6 +2,7 @@ package net.amarantha.scheduler.cue;
 
 import com.google.inject.Inject;
 import com.google.inject.Injector;
+import com.google.inject.Singleton;
 import net.amarantha.scheduler.http.Param;
 import net.amarantha.scheduler.midi.MidiCommand;
 import org.glassfish.grizzly.http.Method;
@@ -9,6 +10,7 @@ import org.glassfish.grizzly.http.Method;
 import java.util.Arrays;
 import java.util.List;
 
+@Singleton
 public class CueFactory {
 
     @Inject private Injector injector;

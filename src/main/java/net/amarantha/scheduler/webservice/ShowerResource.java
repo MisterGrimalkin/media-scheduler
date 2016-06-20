@@ -283,10 +283,13 @@ public class ShowerResource extends Resource {
     // Mode Select //
     /////////////////
 
+    public static String modeScene = "showers";
+
     @POST
     @Path("showermode")
     public Response showerMode() {
         System.out.println("SHOWER MODE -->");
+        modeScene = "showers";
         for ( String host : hosts.getHosts("showers") ) {
             System.out.println("--> "+host);
             http.post(host, "lightboard/scene/showers/load", "");
@@ -298,6 +301,7 @@ public class ShowerResource extends Resource {
     @Path("eventsmode")
     public Response eventsMode() {
         System.out.println("EVENTS MODE -->");
+        modeScene = "events";
         for ( String host : hosts.getHosts("events") ) {
             System.out.println("--> "+host);
             http.post(host, "lightboard/scene/events/load", "");

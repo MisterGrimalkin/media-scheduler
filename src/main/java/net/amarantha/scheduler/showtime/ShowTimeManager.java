@@ -37,20 +37,24 @@ public class ShowTimeManager {
         timer.schedule(new TimerTask() {
             @Override
             public void run() {
-                fire();
+                if ( !paused ) {
+                    fire();
+                }
             }
-        }, 0, 5000);
+        }, 5000, 5000);
         System.out.println("ShowTime Manager online");
+        postMessage("{green}SERVER;;{green}ONLINE;;---;;---;;---");
     }
 
     public void stop() {
         timer.cancel();
+        postMessage("{red}SERVER;;{red}OFFLINE;;---;;---;;---");
     }
 
     private String lastEntireMessage = "";
 
     private void fire() {
-//        System.out.println("Updating ShowTimes...");
+        System.out.println("Show Times -->");
         String entireMessage = "";
         ShowTime currentShow = getCurrentShow();
         List<ShowTime> showTimes = getFutureShows();
@@ -69,6 +73,7 @@ public class ShowTimeManager {
             List<String> hosts = hostManager.getHosts("events");
             if ( hosts!=null ) {
                 for (String host : hosts) {
+                    System.out.println("--> "+host);
                     http.post(host, "lightboard/scene/events/group/events/clear", null);
                     for (String message : messages) {
                         http.post(host, "lightboard/scene/events/group/events/add", message);
@@ -77,8 +82,19 @@ public class ShowTimeManager {
                     lastEntireMessage = entireMessage;
                 }
             }
+            lastEntireMessage = entireMessage;
         }
+    }
 
+    public void postMessage(String message) {
+        List<String> hosts = hostManager.getHosts("events");
+        if ( hosts!=null ) {
+            for (String host : hosts) {
+                http.post(host, "lightboard/scene/events/group/events/clear", null);
+                http.post(host, "lightboard/scene/events/group/events/add", message);
+                http.post(host, "lightboard/scene/reload", null);
+            }
+        }
     }
 
     public void addShow(ShowTime showTime) {
@@ -163,11 +179,11 @@ public class ShowTimeManager {
     }
 
     public void saveShows() {
-        files.writeToFile("show-times.json", encodeShows());
+        files.writeToFile("data/show-times.json", encodeShows());
     }
 
     public void loadShows() {
-        showTimes = decodeShows(files.readFromFile("show-times.json"));
+        showTimes = decodeShows(files.readFromFile("data/show-times.json"));
     }
 
     public List<ShowTime> decodeShows(String json) {
@@ -207,5 +223,15 @@ public class ShowTimeManager {
             saveShows();
         }
         return removed;
+    }
+
+    private boolean paused = false;
+
+    public void pause() {
+        paused = true;
+    }
+
+    public void resume() {
+        paused = false;
     }
 }

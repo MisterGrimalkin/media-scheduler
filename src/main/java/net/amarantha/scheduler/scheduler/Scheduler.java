@@ -29,7 +29,7 @@ public class Scheduler {
 
     private Set<Cue> cues = new HashSet<>();
 
-    private static final String CUES_FILE = "cues.json";
+    private static final String CUES_FILE = "data/cues.json";
 
     public void loadCues() {
         cues = json.decodeCuesFromFile(CUES_FILE);
@@ -113,7 +113,7 @@ public class Scheduler {
 
     private Map<Integer, Schedule> schedules = new LinkedHashMap<>();
 
-    private static final String SCHEDULES_FILENAME = "schedules.json";
+    private static final String SCHEDULES_FILENAME = "data/schedules.json";
 
     public void loadSchedules() {
         schedules = json.decodeSchedulesFromFile(SCHEDULES_FILENAME);
