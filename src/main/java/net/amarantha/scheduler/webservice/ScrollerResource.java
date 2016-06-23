@@ -144,13 +144,7 @@ public class ScrollerResource extends Resource {
             http.postAsync(
                     response -> {
                         for (Map.Entry<Integer, String> entry : messages.entrySet() ) {
-                            String msg =
-                                entry.getValue().toUpperCase()
-                                    .replaceAll("\\{RED}", "{red}")
-                                    .replaceAll("\\{GREEN}", "{green}")
-                                    .replaceAll("\\{YELLOW}", "{yellow}");
-
-                            http.post(host, "lightboard/scene/single-message/group/message/add", msg);
+                            http.post(host, "lightboard/scene/single-message/group/message/add", entry.getValue());
                         }
                         http.post(host, "lightboard/scene/reload", "");
                     },

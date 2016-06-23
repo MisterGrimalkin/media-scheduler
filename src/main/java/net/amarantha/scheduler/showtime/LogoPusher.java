@@ -38,18 +38,22 @@ public class LogoPusher {
     private void fire() {
         if (logo) {
             System.out.println("Logo -->");
-            fireScene("greenpeace-logo");
+            fireScene("greenpeace-logo", "greenpeace-logo-big");
         } else {
             System.out.println("Flash Message -->");
-            fireScene("single-message");
+            fireScene("single-message", "triple");
         }
         logo = !logo;
     }
 
-    private void fireScene(String scene) {
+    private void fireScene(String smallScene, String bigScene) {
         for ( String host : hosts.getHosts("logo") ) {
             System.out.println("--> "+host);
-            http.postAsync(null, host, "lightboard/scene/"+scene+"/load", "");
+            http.postAsync(null, host, "lightboard/scene/"+smallScene+"/load", "");
+        }
+        for ( String host : hosts.getHosts("big-logo") ) {
+            System.out.println("--> "+host);
+            http.postAsync(null, host, "lightboard/scene/"+bigScene+"/load", "");
         }
     }
 

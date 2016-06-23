@@ -306,6 +306,10 @@ public class ShowerResource extends Resource {
             System.out.println("--> "+host);
             http.post(host, "lightboard/scene/events/load", "");
         }
+        for ( String host : hosts.getHosts("big-events") ) {
+            System.out.println("--> "+host);
+            http.post(host, "lightboard/scene/events-big/load", "");
+        }
         return ok("Ok");
     }
 
@@ -317,6 +321,10 @@ public class ShowerResource extends Resource {
             System.out.println("--> "+host);
             http.post(host, "lightboard/scene/greenpeace-logo/load", "");
         }
+        for ( String host : hosts.getHosts("big-logo") ) {
+            System.out.println("--> "+host);
+            http.post(host, "lightboard/scene/greenpeace-logo-big/load", "");
+        }
         return ok("Ok");
     }
 
@@ -327,6 +335,10 @@ public class ShowerResource extends Resource {
         for ( String host : hosts.getHosts("scroller") ) {
             System.out.println("--> "+host);
             http.post(host, "lightboard/scene/single-message/load", "");
+        }
+        for ( String host : hosts.getHosts("big-logo") ) {
+            System.out.println("--> "+host);
+            http.post(host, "lightboard/scene/triple/load", "");
         }
         return ok("Ok");
     }

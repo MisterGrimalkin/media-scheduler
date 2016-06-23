@@ -61,9 +61,11 @@ public class MainSystem {
                 showTimeManager.resume();
                 logoPusher.resume();
                 switch (modeScene) {
-                    case "showers":
                     case "events":
-                        System.out.println("RESETTING SCENE");
+                    case "showers":
+                        for ( String host : hostManager.getHosts("big-events") ) {
+                            http.post(host, "/lightboard/scene/events-big/load", "");
+                        }
                         for ( String host : hostManager.getHosts(modeScene) ) {
                             http.post(host, "/lightboard/scene/"+modeScene+"/load", "");
                         }

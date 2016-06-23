@@ -26,7 +26,7 @@ public class ShowTimeManager {
     @Inject private HttpService http;
 
     private List<ShowTime> showTimes = new LinkedList<>();
-    private int futureCount = 3;
+    private int futureCount = 5;
 
     private static int nextId = 1;
 
@@ -82,12 +82,32 @@ public class ShowTimeManager {
                     lastEntireMessage = entireMessage;
                 }
             }
+            hosts = hostManager.getHosts("big-events");
+            if ( hosts!=null ) {
+                for (String host : hosts) {
+                    System.out.println("--> "+host);
+                    http.post(host, "lightboard/scene/events-big/group/events/clear", null);
+                    for (String message : messages) {
+                        http.post(host, "lightboard/scene/events-big/group/events/add", message);
+                    }
+                    http.post(host, "lightboard/scene/reload", null);
+                    lastEntireMessage = entireMessage;
+                }
+            }
             lastEntireMessage = entireMessage;
         }
     }
 
     public void postMessage(String message) {
         List<String> hosts = hostManager.getHosts("events");
+        if ( hosts!=null ) {
+            for (String host : hosts) {
+                http.post(host, "lightboard/scene/events/group/events/clear", null);
+                http.post(host, "lightboard/scene/events/group/events/add", message);
+                http.post(host, "lightboard/scene/reload", null);
+            }
+        }
+        hosts = hostManager.getHosts("big-events");
         if ( hosts!=null ) {
             for (String host : hosts) {
                 http.post(host, "lightboard/scene/events/group/events/clear", null);

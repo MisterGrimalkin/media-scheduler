@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 ip=192.168.1.72
+curl -d "" http://192.168.1.72:8001/scheduler/control/shutdown
 cd ..
 echo "Compiling Java..."
 mvn clean package
